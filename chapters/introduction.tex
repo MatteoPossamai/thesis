@@ -4,20 +4,6 @@
 \section{Context}
 \label{cha:Context}
 
-For a lot of years, CPU vendors to increase the performance of the bare metal
-have tried to increase clock frequency. In recent years, this approach has lead
-to a plateau, since this requires huge power consumption, generates a lot of
-heat and ultimately consume the CPU life. This plateau has been reached at around
-4 GHz. \\ Regardless of this limitations, vendors have tried to improve performance
-in other ways, reliying not to optimizing the metal performance, but applying smart
-heuristics to the behauvior of the CPU. One of this improvement is called
-speculation. \\ Speculation happens when the CPU tried to predict the outcome of
-a branch instruction, and therefore start executing the logic beforehand. Once the
-prediction is confirmed, the CPU can continue executing, but now has an hedge in
-the execution.\\ This approach is really beneficial in terms of performance gains,
-but has his drawbacks. In fact, this leads to potential security vulnerabilities,
-that are exploitable with attacks such as Spectre and Meltdown.
-
 \section{Problem}
 \label{cha:problem}
 

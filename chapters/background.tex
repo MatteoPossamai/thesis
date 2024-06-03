@@ -1,2 +1,58 @@
 \chapter{Background}
 \label{cha:background}
+
+In this section, there will be all the background information relevat to the thesis,
+that are needed in order to understand the matter of the project, the problem,
+the technologies and the solution.
+
+\section{CPU speculation contract}
+\label{cha:CPU speculation contract}
+
+\section{Revizor}
+\label{cha:Revizor} Revizor is an open source fuzzing tool developed by Microsoft
+Research. It has been developed to detect black-box CPU leakeages, just starting
+from a CPU speculation contract (\ref*{cha:CPU speculation contract}). Then, it generates
+a number of test cases, executing therefore some fuzzing to detect evantual
+leakeages in the contract. Once the test cases has been generated, they are
+runned on the CPU, and then Revizor looks at the information that are leaked,
+and then compare them with the CPU contract. With this information, we are able
+to understand if the CPU is leaking information. \\
+
+The researchers tested Revizor on different x86 Intel CPUs, finding some known vulnerabilities,
+such as Spectre, MDS (Microarchitectural Data Sampling) and LVI (Load value
+injection), and some novel ones. All this is done in a short amount of time, in
+an automated fashion. The tool is mainly written in Python, with some C code for
+performance improvements. It is available on GitHub, and can be used by anyone
+to test any CPU. \\
+
+In this project, Revizor is used as part of the toolchain, to detect the
+contract of a CPU. starting from our current CPU leakeage contract, we run
+Revizor on this specification, and then we check if we obtain some violations.
+If so, we add the discovered violations to the contract, enriching it with novel
+information about the CPU. And then we loop over. The loop will be futher
+discussed in Section \ref*{cha: Loop outlook}. \\
+
+Further information about Revizor can be found: \\ Overall research paper:
+\url{https://www.microsoft.com/en-us/research/publication/revizor-testing-black-box-cpus-against-speculation-contracts/}
+\\ GitHub Repository \url{https://github.com/microsoft/sca-fuzzer/} \\Documentation:
+\url{https://microsoft.github.io/sca-fuzzer/}
+
+\section{DSL}
+\label{cha:DSL} To represent the CPU contract, we needed a language that was
+able to describe the ISA of a CPU and its contract. To archieve this need, at
+the beginning of the project, a Domain Specific Language (DSL) was developed.
+This language is able to define, check and evaluate a number of boolean conditions,
+such as AND, OR, NOT, EQUAL, and to access CPU's registers. This was enough as a
+proof of concept to see wheather the whole system was working, but now with the
+further steps of the project, this is not enough anymore. To have a more
+research-validated, robust, complete and universal language, the team decided to
+switch from this DSL to using the BIR language (more in Section \ref*{cha:BIR}).
+
+\section{Rosette}
+\label{cha:Rosette}
+
+\section{Loop outlook}
+\label{cha: Loop outlook}
+
+\section{BIR}
+\label{cha:BIR}
