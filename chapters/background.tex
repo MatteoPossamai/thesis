@@ -49,10 +49,77 @@ research-validated, robust, complete and universal language, the team decided to
 switch from this DSL to using the BIR language (more in Section \ref*{cha:BIR}).
 
 \section{Rosette}
-\label{cha:Rosette}
+\label{cha:Rosette} Rosette is an open-source solver-aided programming language.
+It is a Racket-based language that allows to write programs that are able to
+generate and solve constraints. So, it takes care of verifying and syntehtizing
+programs, making easier to build Domain Specific Languages, and does the heavy
+lifting on its own, making easier for the user to write the code. \\
+
+In the project, Rosette is used to syntehtize the CPU leakeage contracts that
+Revizor (\ref*{cha:Revizor}) finds. This continue iterating in the loop until the
+contract is stable. It has been chosen as it makes the development of the tools
+needed to handle, verify and synthesise the contracts easier, faster and more
+reliable. \\
 
 \section{Loop outlook}
 \label{cha: Loop outlook}
 
 \section{BIR}
-\label{cha:BIR}
+\label{cha:BIR} Binary Intermediate Representation (BIR) is a programming language
+developed by a group of researchers, that were trying to make analysis of binary
+files. To do so, they needed a language that was platform independent, and that represented
+the ISA of a CPU. The goal of the language is to be clear, meaning that it has only
+explicit type changes, leaving no room for side effects and abstracted
+behaviours. \\
+
+BIR has functionalities such as blocks, jump, assignent and so on. In our project,
+the part of BIR that was used are the expressions. When we talk about expressions
+in BIR we mean the following possible statements:
+\begin{itemize}
+  \item \textbf{Constant}: A constant value, in our case a numeric value.
+
+  \item \textbf{Unary operation}: Operation performed on a singular value, such
+    as binary NOT.
+
+  \item \textbf{Binary expressions }: A function that can be called with a number
+    of arguments.
+
+  \item \textbf{Binary operation}: Operation performed on two values, such as
+    binary AND.
+
+  \item \textbf{Predicates}: A function that returns a boolean value.
+
+  \item \textbf{Variable}: Usage of variables, such as the value inside a given
+    register.
+
+  \item \textbf{IfThenElse statement}: A conditional statement with a condition,
+    and two branches that are evaluated according to the condition itself.
+
+  \item \textbf{Load}: Load a value from a given memory address.
+
+  \item \textbf{Store}: Store a value in a given memory address.
+\end{itemize}
+
+Followig there is a simple example of each one of the possible expressions that has
+been used in the project, with a brief comment on the meaning of them. \begin{verbatim}
+- (BExp_Const (bv 1 Bit32)) # Constant value 1, in binary vector of 32 bits.
+- (BExp_UnaryExp (BIExp_ChangeSign (BExp_Const (bv 42 Bit8)))) # Change sign of 42
+- (BExp_BinExp BIExp_Plus (BExp_Const (bv 12 Bit8)) (BExp_Const (bv 30 Bit8))) # Sum
+of 12 and 30
+- (BExp_BinPred BIExp_Equal (BExp_Const (bv 12 Bit8)) 
+(BExp_Const (bv 30 Bit8))) # Check if 12 is equal to 30
+- (BExp_Den (BVar R1)) # Value inside register R1
+- (BExp_IfThenElse (BExp_BinPred BIExp_Equal (BExp_Const (bv 12 Bit8)) 
+(BExp_Const (bv 30 Bit8))) (BExp_Const (bv 42 Bit8)) (BExp_Const (bv 50 Bit8))) 
+# If 12 is equal to 30, return 42, else return 50
+- (BExp_Load BExp_Den (BVar R1) (BExp_Const (bv 0 Bit32)) BEnd_LittleEndian Bit64) 
+# Load value from memory address 0 in R1, in little endian, 64 bits
+- (BExp_Store BExp_Den (BVar  R1) (BExp_Const (bv 0 Bit32)) BEnd_LittleEndian 
+(BExp_Const(bv 2 Bit32))) # Store value 2 in memory address 0 in R1, in little endian
+\end{verbatim}
+
+We choose to substitute the DSL with BIR as it is more robust, complete,
+platform independent and research-based. It is also pretty close to a lot of different
+dilects present in other popular tools such as Valgrind IR. This would make the
+project also more usable and extendable in the future, by other actors outside the
+team of research.
