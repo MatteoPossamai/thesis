@@ -11,19 +11,29 @@ contract is, it is better to have a clear idea of what speculative execution is.
 In speculative exection, the CPU tries to predict the path of a branch operation
 before the actual path is known. This is done to increase performance, as the CPU
 can execute instructions beforehand. Once the actual path is known, the CPU can discard
-or confirm the speculative execution. For example, given the following pseudo-code:
-\begin{verbatim}
-if (x < 0) {
-  y = 1;
-} else {
-  y = 2;
-}
-\end{verbatim} The CPU can
-predict that the path will be the one on the true branch (hence, `y=1`), and
-evaluate it. At this point, the CPU has to check if the condition holds, evaluating
-the predicate. If the evaluation confirms that the speculation was right, the CPU
-can confirm the speculative execution, and continue with the exection. Otherwise,
-it will discard the execution and run the real path.
+or confirm the speculative execution.
+
+\begin{figure}
+  \centering
+  \begin{varwidth}
+    {\linewidth} \begin{verbatim}
+      if (x == 1) {
+        y = 1;
+      } else {
+        y = 2;
+      }
+          \end{verbatim}
+  \end{varwidth}
+  \label{fig:snip1}
+  \caption{Conditional statement}
+\end{figure}
+
+For example, consider the snipper in \ref{fig:snip1}. The CPU can predict that
+the path will be the one on the true branch (hence, `y=1`), and evaluate it. At this
+point, the CPU has to check if the condition holds, evaluating the predicate. If
+the evaluation confirms that the speculation was right, the CPU can confirm the speculative
+execution, and continue with the exection. Otherwise, it will discard the
+execution and run the real path.
 
 Whis this in mind, the speculation contract of a CPU can be seen as an agreement
 or policy that governs the behaviour of the speculative execution. A contract is
@@ -35,13 +45,13 @@ contract.
 
 One of the main goals of this project is synthesizing this contract, using all the
 tools that will follow in the next sections, and then represent them in a human-readable,
-standard language. This language, at the beginning was a DSL (\ref*{cha:DSL}),
-but in this thesis project, I replaced it with BIR (\ref*{cha:BIR}).
+standard language. This language, at the beginning was a DSL (\ref{cha:DSL}),
+but in this thesis project, I replaced it with BIR (\ref{cha:BIR}).
 
 \section{Revizor}
 \label{cha:Revizor} Revizor is an open source fuzzing tool developed by a Microsoft
 Research team \cite{article}. It has been developed to detect black-box CPU
-informational leakeages, just starting from a CPU speculation contract (\ref*{cha:CPU
+informational leakeages, just starting from a CPU speculation contract (\ref{cha:CPU
 speculation contract}). Then, it generates a number of test cases, executing
 therefore some fuzzing to detect evantual leakeages in the contract. Once the test
 cases has been generated, they are runned on the CPU, and then Revizor looks at the
@@ -60,7 +70,7 @@ In this project, Revizor is used as part of the toolchain, to detect the contrac
 of a CPU. starting from our current CPU leakeage contract, we run Revizor on this
 specification, and then we check if we obtain some violations. If so, we add the
 discovered violations to the contract, enriching it with novel information about
-the CPU. And then we loop over. The loop will be futher discussed in Section \ref*{cha:
+the CPU. And then we loop over. The loop will be futher discussed in Section \ref{cha:
 Loop outlook}.
 
 \section{Rosette}
@@ -70,7 +80,7 @@ solve constraints. So, it takes care of verifying and syntehtizing programs, mak
 easier to build Domain Specific Languages, and does the heavy lifting on its own,
 making easier for the user to write the code.
 
-In the project, Rosette is used to encode the violations reported from Revizor (\ref*{cha:Revizor})
+In the project, Rosette is used to encode the violations reported from Revizor (\ref{cha:Revizor})
 into new constrains for the CPU contract. This continue iterating in the loop until
 the contract is stable. It has been chosen as it makes the development of the
 tools needed to handle, verify and synthesise the contracts easier, faster and
@@ -107,7 +117,7 @@ such as AND, OR, NOT, EQUAL, and to access CPU's registers. This was enough as a
 proof of concept to see wheather the whole system was working, but now with the
 further steps of the project, this is not enough anymore. To have a more
 research-validated, robust, complete and universal language, the team decided to
-switch from this DSL to using the BIR language (more in Section \ref*{cha:BIR}).
+switch from this DSL to using the BIR language (more in Section \ref{cha:BIR}).
 
 \section{BIR}
 \label{cha:BIR} Binary Intermediate Representation (BIR) is a programming language

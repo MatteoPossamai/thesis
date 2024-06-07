@@ -1,17 +1,58 @@
 \chapter{Introduction}
 \label{cha:introduction}
 
-\section{Context}
-\label{cha:Context}
+Micro-architectural Leakage Contract Synthesis (Malcos) is a synthesis engine
+for generating contracts representing microarchitectural leakages on CPUs. It is
+currently under development of a research team made with researchers from University
+of Trento, Imdea and KTH. The goal of this project is to provide a tool that can
+synthesize speculation contracts of black box CPUs. This is done to then, in futher
+steps, be able to inspect vulnerabilities of CPU and correctly and automatically
+patch them. The tool is written mainly in Python and Racket, using the Revizor
+tool and the Rosette language.
 
-\section{Problem}
-\label{cha:problem}
+At the beginning of the project, a Domain Specific Language (DSL) was developed and
+used to write the specifications of the CPU contracts. But once the project
+started to grow, the need for a more robust, flexible and researched language
+started to arise. The DSL was not in fact powerful enough, to represent in a
+platform-independent way all CPU possible contract. A new semantic was therefore
+needed, and the choice turned out to be the Binary Intermediate Representation (BIR)
+language. It is the best candidate for representing the contracts, since it has
+been developed with this goal in mind by a group of researchers. They designed BIR
+to be a powerful platform independent language, and become a standard in this
+vertical. Using BIR would make the Malcos project more transferable and utilizable
+by other research groups. \\
 
-\section{Solution}
-\label{cha:solution}
+So, there was the need to transition from the DSL semantic to BIR. To do so, all
+the current DSL pipeline needed to be replaced by a new one, suited for the BIR language.
+This would have been the best choice seens translating from the DSL to BIR and
+viceversa would not have been the best choice, since BIR is a more complex and powerful
+language. It was not automatic to complete all the translation.
 
-\section{Validation}
-\label{cha:validation}
+To validate the new pipeline, multiple different tests were written and run.
+There has been a lot of unit tests for each step of the pipeline, to ensure correct
+behavior at a local scale, and multiple tests involving all the moving part. This
+latter type of tests has been done with already-tested contracts, and compared
+the outcome with the DSL pipeline, to ensure correctness and consistency. In
+total, more than 150 tests are present in the codebase contribution of this thesis.
 
-\section{Outline}
-\label{cha:outline}
+Also, we thought about whether it would have been worth migrating the pipeline, or
+part of it from the native Python, to Rust, a more performant and safe programming
+language. In this thesis, we will also explore the research, the proof of
+concepts (PoC) developed and the final outcome of this trial, that has been quite
+surprising giving the premise.
+
+At this point, also, the Malcos project is still under development, but now is
+using the BIR language to represent the contract instead of the legacy DSL. This
+further validates the work done. \\
+
+\textbf{Outline}: This thesis is a overview of the contribution done to the Malcos
+codebase, exploring all the steps taken, the choice made with their whys, and
+prove the validity of the developed solution.
+
+To do so, Section \ref{cha:background} there will be a background overview of all
+the needed concepts to understand the work and the project we will be talking about,
+and all the tools used. Section \ref{cha:core} will be the core of the thesis,
+with all the steps taken to transition from the DSL to BIR, the validation of each
+step and the assessment of the final results. In addition, in this chapter there
+will be all the explaination of the research done to decide whether it was worth
+migrating the pipeline from the native Python code to a Rust implementation.
