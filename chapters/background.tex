@@ -5,6 +5,21 @@ In this section, there will be all the background information relevat to the the
 that are needed in order to properly understand the matter of the project, the problem,
 the technologies and the solution.
 
+We will start in subsection \ref{cha:CPU speculation contract} by explaining
+what a CPU speculation contract is, and why it is important for the scope of this
+thesis. Then we will move to subsection \ref{cha:Revizor}, where we will talk about
+the Revizor tool, that is used in the project to detect the contract of a CPU. We
+will detail how it works and some background information. In subsection
+\ref{cha:Rosette}, we will talk about Rosette, the solver-aided programming
+language that is used to encode the violations reported from Revizor. In subsection
+\ref{cha: Loop outlook}, we will give an overview of the loop that is used to
+synthesize the CPU contract, using all the tools anbd language discussed in previous
+sections. In subsection \ref{cha:DSL}, we will talk about the Domain Specific Language
+(DSL) that the team used before this thesis's project, and why it was not enough
+for the scope of the overall project. In subsection \ref{cha:BIR}, we will talk
+about the Binary Intermediate Representation (BIR) language, that has been chosen
+to replace the DSL, and why it is a better choice for the project.
+
 \section{CPU speculation contract}
 \label{cha:CPU speculation contract} Before diving into what a CPU speculation
 contract is, it is better to have a clear idea of what speculative execution is.
@@ -173,7 +188,7 @@ of 12 and 30
 \end{verbatim}
 
 We choose to substitute the DSL with BIR as it is more robust, complete, platform
-independent and research-based. It is also pretty close to a lot of different
+independent and research-based. It is also pretty close to multiple different
 dilects present in other popular tools such as Valgrind IR. This would make the project
 also more usable and extendable in the future, by other actors outside the team
 of research.
