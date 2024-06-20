@@ -41,11 +41,21 @@ Once the grammar was fully created, I created the class structure that `pyparsin
 needs to put all the parsed string, so we can after the parsing also trace and
 evaluate the expression. I created this class, that according to the generated
 keyword, it would have some specific attributes that will be used in future steps
-of the pipeline. This class is called `BEXP', as Binary Expression. This class
-is istantiated when the parser finds a binary expression, and it is used to the eventual
-operands, or operation types. Also this section of the code has been modularized
-as much as possible, so in case there is the need to add new constructs or
-features it should be as easy as possible.
+of the pipeline. It behaves as a generic type, or a sort of enum, according to
+the specific construct it is modeling. This approach was not quite optimal, you
+cannot infer directly what type of expression is being represented, unless you check
+the used attributes. So, I added the `keyword' attribute, to make clear and
+easier to understand what type of expression was used and allow for more
+readable code. Other languages different from Python, such as Rust, can do this with
+generics or enums, that are features not offered by Python. This is one of the reasons
+that made us thinking about switching the language of this thesis's project to Rust,
+as we will see in the section \ref{cha:Migration to Rust}.
+
+This class is called `BEXP', as Binary Expression. This class is istantiated
+when the parser finds a binary expression, and it is used to the eventual operands,
+or operation types. Also this section of the code has been modularized as much as
+possible, so in case there is the need to add new constructs or features it
+should be as easy as possible.
 
 I did this the first time with all the specification created in the first
 meetings, and then added when the necessity arised, also the par for the parsing
@@ -60,16 +70,20 @@ curve. And since it was already used from the other members of the team, it does
 not introduce complexity or any technical debt of any kind, so in future can be maintained
 and updated with ease.
 
+To introduce the class in the codebase, it was enough to add a if statement, that
+accoring to the configuration used to run the project, if the selected language
+was `bir', then the used parser would have been `BIRParser'.
+
 \section{Validating the parsing}
-\label{cha:Validating the parsing} The second step in the pipeline is validating
-the parsing. Since this is the first and most critical step in the pipeline, it needed
-a quite big and comprehensive test suite, to certify its correctness. In order to
-archieve this, for each possible construct of the language, I wrote different test
-cases. They could be tests where a valid string was parsed, and I checked that the
-class instance output contained in fact what I wanted and expected from it.
-Another type of test that I implemented was the creation of invalid BIR string, and
-I expected a failure from the parser. If that would not happen, then there was some
-issue in the current implementation.
+\label{cha:Validating the parsing} Then it was time for validating the parsing.
+Since this is the first and most critical step in the pipeline, it needed a quite
+big and comprehensive test suite, to certify its correctness. In order to archieve
+this, for each possible construct of the language, I wrote different test cases.
+They could be tests where a valid string was parsed, and I checked that the class
+instance output contained in fact what I wanted and expected from it. Another
+type of test that I implemented was the creation of invalid BIR string, and I expected
+a failure from the parser. If that would not happen, then there was some issue in
+the current implementation.
 
 For all the testing, the Python library `unittest' was used. This library allows
 to create a `TestCase' class, in which developers can define their tests. THe class
@@ -96,20 +110,177 @@ in the future, to do some addition to the parser, and test automatically in a ma
 of milliseconds if the implemented change did not break anything.
 
 \section{Tracing the parsed BIR}
-\label{cha:Tracing the parsed BIR} The third step in the pipeline is tracing the
-parsed BIR.
+\label{cha:Tracing the parsed BIR} The next step in the pipeline was tracing the
+parsed BIR code. This means that I needed to create a tracer, a piece of software
+that, given the contract written in BIR and the state of the CPU, called `model'
+in this project, it would be able to populate the trace. The trace is a list data
+structure that contains all the information that passes through the CPU. So, if I
+ask with a BIR contract to evaluate a conditional statement (if then else) with a
+true condition, and then accoringly return the value in the register RAX or RBX,
+I expect to find in the trace the value contained in the RAX register.
+
+The step of tracing is really important, because this allow us to check if the
+contract leaks more information than what we expect. With this, we are then able
+to add more contracts to the CPU, and then check loop over again, until we reach
+a fixed point, as detailed in the section \ref{cha: Loop outlook}.
+
+To accomplish this goal of tracing the contracts, populating the trace and
+allowing the project to run his loop, I needed to create a new class for this purpose.
+To maintain the codebase as close as his original state, and not bring too much complexity,
+I followed the same approach used for the legacy tracer for the DSL. I created the
+class `BIRParametricTracer', that is a subclass of `UnicornTracer'. The `UnicornTracer'
+class is a defined class in the codebase of the Malcos repository, and it is a
+subclass of `ABC' class, that is a Python standard abstract class. The `UnicornTracer'
+class is used as an interface inside the codebase, to allow for the creation of different
+tracers, and all will have a trace, meaning and empty list to populate, and a `getContractTrace',
+that returns the hash of the trace.
+
+Before I started developing the `BIRParametricTracer', I read the code of the
+legacy tracer, to see how it was actually implemented, what were the main
+features and methods needed, and eventually how to perform some low-level operations
+with numbers and registers. Unfortunately, the legacy tracer was not fully implemented,
+and a lot of methods and features were not implemented. So, for the majority of
+the code I wrote, I did my own research and done a lot of trial and error. But
+this also gave me the freedom to choose the approach I prefered the most, so I was
+able to structure the code in the way I felt was the best. In particular, I modularized
+a lot more all the needed functions for low level operations, and made the
+functions more robust.
+
+The `BIRParametricTracer' works as follows: For all the instruction that the CPU
+executes, it then checks and runs all the contract in the CPU. It means that all
+the contracts are parsed, and then the final result computed with the `evalExp'
+function is stored in the trace. I stress about only the last since there might be
+some recursion, for example in a if then else, where the true statement is a sum
+between the value of two registers. Therefore, to evaluate this, I have to do
+first the sum and then return it, both as a result of the sum and the if then else,
+but this value will be in the trace just once. To archieve this, in the `evalExp'
+function, I added a parameter named `trace', that by default would be False, but
+if you passed as True, it would store in the trace. So, on the main call you can
+put the value to True, and then once the function performs recursive computation,
+the result of intermediate steps will not be stored in the trace. In this function,
+there is a bit `match-case' statement, that maps all the keywords of the parsed `BEXP'
+class into a specific function. This functions then yield the final result of
+the computation, even performing recursion when needed. Since BIR allows to have
+numeric values that are also represented with the precision (meaning 8 Bits, 16
+Bits and so on), all the functions did not return the raw value of the
+computation, but a tuple with the value and the precision, so that the caller
+could check that precision were matching and also check for errors of overflow. Since
+most of the operations tha the tracer was able to evaluate were binary, a lot of
+the code to perform that was not ready out of the box from the Python language, so
+I needed to write some of the code from scratch. This took some time, but was worth
+it, since now the code does not rely on external libraries.
+
+In the end, the `BIRParametricTracer' implemented the following methods:
+\begin{verbatim}
+    eval_expr() -> Evaluate the expression and trace eventually
+    eval_pred() -> Evaluate the predicate
+    eval_unary_operations() -> Evaluate the unary operations 
+    eval_binary_operations() -> Evaluate the binary operations
+    eval_ifthenelse() -> Evaluate the if then else
+    eval_cast() -> Evaluate the cast
+    eval_den() -> Evaluate the variable in a register
+    eval_load() -> Evaluate the load from memory
+    eval_store() -> Evaluate the store in memory
+    signedToUnsigned() -> Convert a signed number to an unsigned one
+    unsignedToSigned() -> Convert an unsigned number to a signed one
+    cast() -> Cast a number to a different precision
+    translate_value() -> Given a value and a not-matching precision, translate it
+\end{verbatim}
+
+So, the final artifact of this step was adding the `BIRParametricTracer' to the
+file `model.py' of the project and, as in the case for the parser, add the if
+statement that checks the configurations and eventually uses it as the default
+tracer. This took some iteration and various meetings with the team of researchers,
+to be sure that the behauvior of the tracer was the expected one. This means that
+some modules of the tracer was written several times, yielding in the end a
+version that can fully and correctly trace the BIR contracts.
+
+In the next section, we will cover how we were able to validate the tracing correctness,
+and therefore move to the next step of the pipeline.
 
 \section{Validating the tracing}
-\label{cha:Validating the tracing} The fourth step in the pipeline is validating
-the tracing.
+\label{cha:Validating the tracing} The tracing step of the pipeline is quite
+crucial, since from it correctness depends all the following steps. So, the tests
+needed to be quite robust and cover all the possibilities that could occur while
+using the tracer. To archieve this, I wrote two different sets of tests, of two
+different kind. In this section I will cover both of them. All of the tests, as in
+the case for the parser has beed done using the Python package `unittest', and
+its class `TestCase', for code coherence. \\
+
+The first family of tests was the one that checked that the output of the evaluation
+function was actually correct, and therefore the computation made by the custom
+function developed in the previous section was correct. To archieve this, for
+every possible construct of the BIR language, I listed a number of possible inputs,
+and I hardcoded the expected output. Then I executed the tracer and read the output
+it would produce, and compare to the expected one. If they matched, the test was
+passed. This was done for almost all the possible constructs, all the operation
+that the construct allowed, with normal cases and limit cases. Most of the limit
+cases relied on possible overflows or similar sort of binary-level issues. I wrote
+tests of nested expression, to see if the recursion was handled correctly, and also
+tests with data with different precisions, expecting errors.
+
+I grouped the tests in sets, each one corresponding to a single construct, so
+that I could create a unique test that did the whole testing for that construct
+in one function. This allowed to make the testing pipeline more performant and to
+have a more readable and extensible test suite. In the end, I wrote almost a hundred
+tests, that covered all the possible cases that could occur while running the
+tracer, and this could easily be extended in the future if there is the need or new
+expression are added. \\
+
+The second family of tests was the one that checked that the `BIRParametricTracer'
+and the legacy tracer, if runned with equivalent contracts (even though written in
+different languages), would yield the same trace, and therefore, assuming the correctness
+of the legacy tracer, the correctness of the new one. This test was quite tricky
+since, as said at the beginning of last section, the legacy tracer was not fully
+implemented, and some of the constructs or operations were not there, so some tests
+were indeed impossible with this setup. Despite that, the implemented section was
+enough to validate the most used operations and constructs, allowing to have a
+big enough coverage of the most frequent code snippets that occurs in CPU
+contracts, and leaving the rest to the first family of tests. To do this tests, I
+also needed a basic model with instruction. So I created multiple assembly files,
+with various set of instruction, to make the tracing more complex, adding branches,
+jumps and modifications to register's values.
+
+So, in this test family, I wrote multiple cases, in particular:
+\begin{itemize}
+  \item A basic test with just evaluation of an always true if then else,
+    reading the program counter, in a linear assembly code
+
+  \item A test with an always true it then else, reading another register than
+    the program counter, in a linear assembly code
+
+  \item A test with an always true if then else, reading the program counter, in
+    a branched assembly code
+
+  \item A test with an always true if then else, reading another register than
+    the program counter, in a branched assembly code
+
+  \item A test with constant values in a branched assembly code
+
+  \item A test with non deterministec if then else outcode in a randomically-generated
+    assembly code
+
+  \item A test reading the program counter in a randomically-generated assembly code
+
+  \item Multiple contracts in a randomically-generated assembly code
+\end{itemize}
+
+A part from this list, some other contracts where given from the researchers, since
+they were the contracts they were using to test the whole existing pipeline of the
+project, that will include mine. Some of this contracts, were in fact real-CPU
+contracts, and not just atomic tests such as this ones that I just listed. So it
+was worth seeing if, with this bigger and complex suite of cases, the tracer
+would produce the same expected and desired outcome.
+
+After testing all this facets of the tracer, I was confident that the implementation
+was correct, and that I could move on to the next step of the toolchain, namely the
+generation of new contracts using Rosette.
 
 \section{Generating the Rosette code}
-\label{cha:Generating the Rosette code} The fifth step in the pipeline is generating
-the Rosette code.
+\label{cha:Generating the Rosette code} TODO: write rosette section
 
 \section{Validating the pipeline}
-\label{cha:Validating the pipeline} The sixth step in the pipeline is validating
-the pipeline.
+\label{cha:Validating the pipeline} TODO: write validation section
 
 \section{Migration to Rust}
 \label{cha:Migration to Rust} During and after all the development described in the
