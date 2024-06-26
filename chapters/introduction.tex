@@ -2,33 +2,40 @@
 \label{cha:introduction}
 
 Micro-architectural Leakage Contract Synthesis (Malcos) is a synthesis engine
-for generating contracts representing microarchitectural leakages on CPUs. It is
-currently under development of a research team made with researchers from University
-of Trento, Imdea and KTH. The goal of this project is to provide a tool that can
-synthesize speculation contracts of black box CPUs. This is done to then, in futher
-steps, be able to inspect vulnerabilities of CPU and correctly and automatically
-patch them. The tool is written mainly in Python and Racket, using the Revizor (\cite{article},\cite{repo},
-\cite{misc}) tool and the Rosette language.
+for generating contracts representing speculation behavior of black-box CPUs. It
+is currently under the development of a research team made with researchers from
+University of Trento, Imdea and KTH. The goal of this project is to provide a tool
+that can synthesise speculation contracts of black box CPUs, providing more
+information about their behavior. This is done to then, in futher steps, be able
+to inspect vulnerabilities of CPU and correctly and automatically patch them,
+from a platform-dependent point of view. The tool is written mainly in Python and
+Racket, using the Revizor (\cite{article},\cite{repo}, \cite{misc}) tool and the
+Rosette language. As the time of this thesis, the project is not open-source,
+but the plan is to make it public once it is completed, tested and validated.
 
 At the beginning of the project, the team develped and used a Domain Specific
-Language (DSL) to write the specifications of the CPU contracts. But once the project
-started to grow, they saw that the language was not the right language for the
-project. The DSL was not in fact powerful enough, to represent in a platform-independent
-way all CPU possible contract. A new semantic was therefore needed. Also, a group
-of researchers that was working on similar topics, developed a new language, called
-Binary Intermediate Representation (BIR, \cite{bir_pub}), which they created with
-the goal of representing the ISA of the CPU in a platform-independent, powerful
-and complete way, to have an universal language for this purpose. This situation
-created the necessity to switch the current DSL to BIR.
+Language (DSL) to write and describe the specifications of the CPU contracts. But
+once the project started to grow, they saw that the language was not the right
+fit for the project. The DSL was not in fact powerful enough, to represent in a
+platform-independent way all CPU possible contracts and operations. A new semantic
+was therefore needed. Also, a group of researchers of KTH institute involved in the
+same topics and also collaborating with the team in others, developed a new
+language, called Binary Intermediate Representation (BIR, \cite{bir_pub}), which
+they created with the goal of representing the Instruction Set Architecture (ISA)
+of the CPU in a platform-independent, powerful and complete way, to have an universal
+language for this purpose. These two factors lead to the decision of migrating
+the semantic that the project used for the contract from the DSL to BIR.
 
 To do so, all the current DSL pipeline needed to be replaced by a new one,
-suited for the BIR language. This would have been the best choice seens translating
-from the DSL to BIR and viceversa would not have been the best choice, since BIR
-is a more complex and powerful language. It was not automatic to complete all the
-translation.
+suited for the BIR language. It was needed a full rebuild since translating from
+BIR to the DSL to then inject it into the tool, and translating the output to
+BIR again was not a suitable option. This was because of the fact that BIR is far
+more complex then the DSL, and therefore not all the constructs were available. This
+meant making the DSL more powerful, or switch directly and entirely to BIR, as has
+we did.
 
 Therefore, in this thesis we implement all the new pipeline and logic needed to
-handle the BIR language in this particular project, and we validate the correctness
+handle the BIR language for this particular project, and we validate the correctness
 of the final outcome. To be more procise, in this thesis we will implement the parser
 for the language, the tracer that interpretes the contract and populates the
 trace and the engine for generating the new synthesized contracts.
@@ -40,19 +47,19 @@ of concepts (PoC) developed and the final outcome of this trial, that has been
 quite surprising giving the premise.
 
 I wrote and run multiple different tests to validate the correctness of the new
-pipleline. The majority of them are unit tests, to test each step of the
-pipeline and ensure correct behavior at a local scale, and multiple tests involving
-all the moving part. To test the later, I used already tested contracts, and
-compared the outcome with the DSL pipeline, to ensure correctness and consistency.
-In total, more than 150 tests are present in the codebase contribution of this thesis.
+pipleline. The majority of them are unit tests, to test each step of the process
+and ensure correct behavior at a local scale, and multiple tests involving all the
+moving part. To test the later, I used already tested contracts, and compared
+the outcome with the DSL pipeline, to ensure correctness and consistency. In
+total, more than 200 tests are present in the codebase contribution of this thesis.
 
 At this point, also, the Malcos project is still under development, but now is
 using the BIR language to represent the contract instead of the legacy DSL. This
-further validates the work done. \\
+further validates the work done.
 
 \textbf{Outline}: This thesis is a overview of the contribution done to the Malcos
 codebase, exploring all the steps taken, the choice made with their whys, and
-prove the validity of the developed solution.
+proofs the validity of the developed solution.
 
 To do so, Section \ref{cha:background} presents background overview of all the needed
 concepts to understand the work and the project we will be talking about, and
