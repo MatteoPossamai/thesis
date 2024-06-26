@@ -1,6 +1,34 @@
 \chapter{Related Works}
-\label{cha:related_works}
+\label{cha:related_works}The paper that has been the most important for this
+thesis is that of Linder, Guanciale and Metere et al. \cite{bir_pub}. This article
+that I refered multiple times in this thesis, is focused mainly in the automated
+verification of binary files, proving their validity and correctness. To
+archieve this goal, the authors created a new language, called Binary
+Intermediate Representation (BIR), that could describe the Instruction Set Architecture
+(ISA) of a CPU in a platform-independent way, to pursue their goals. This is the
+birth of the BIR language, that has been used in this thesis. The article's writers
+are also part of the same research group that I have been part of, so the
+stimuli and the ideas that have been developed in this paper have been the base
+of the motivation for using BIR in the Malcos codebase.
 
-\section{Citations}
-\label{cha:examples_citations} TODO: understand what is to be written here, and
-then write it.
+Also, another important piece of reseach for the scope of this thesis has been the
+research done by Microsoft researchers, in particular in Oleksii Oleksenko, Christof
+Fetzer, Boris Köpf, Mark Silberstein et al. \cite{article}. This article is where
+the Revizor tool has been presented, and some vulnerabilities of some CPUs were
+discovered. Since Revizor is a crucial part of this project as a whole, and
+something I had the opportunity to touch with my works, it was worth reading this
+article to better understand the tool and its capabilities, to then also
+understand better how the Malcos project used it.
+
+Once last relevant piece of research that has been important for this thesis is
+Marco Guarnieri, Boris Köpf, Jan Reineke, and Pepe Vila. at el. \cite{contracts_paper}.
+In this paper, the authors describe the hardware and the software contracts that
+are required for secure speculation. In this paper, the concepts of contracts and
+speculation could be better understood. This paper has been important for the
+thesis, since it allowed me to fully understand some concepts around the speculation
+and contracts. This is also a foundation paper for the Malcos project, since Marco
+Guarnieri, one of the author, is one of the main contributors to the Malcos project,
+and has also been one on the Revizor codebase.
+
+TODO: Compare and discuss the differences between the works that has been done in
+this project and other similar or related ones in the field.
