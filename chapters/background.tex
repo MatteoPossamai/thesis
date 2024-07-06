@@ -241,7 +241,8 @@ we mean the following possible statements:
   \item \textbf{OPCODE}: Returns the opcode of the instruction that has just been
     executed
 
-  \item \textbf{SLIDE}: TODO: not sure what this does
+  \item \textbf{SLIDE}: Slide the bits of a given value, extracting a range of
+    bits from it.
 \end{itemize}
 
 Followig there is a simple example of each one of the possible expressions that
@@ -253,13 +254,13 @@ has been used in the project, with a brief comment on the meaning of them.
 of 12 and 30
 - (BExp_BinPred BIExp_Equal (BExp_Const (bv 12 Bit8)) 
 (BExp_Const (bv 30 Bit8))) # Check if 12 is equal to 30
-- (BExp_Den (BVar R1)) # Value inside register R1
+- (BExp_Den (BVar REG 1)) # Value inside register R1
 - (BExp_IfThenElse (BExp_BinPred BIExp_Equal (BExp_Const (bv 12 Bit8)) 
 (BExp_Const (bv 30 Bit8))) (BExp_Const (bv 42 Bit8)) (BExp_Const (bv 50 Bit8))) 
 # If 12 is equal to 30, return 42, else return 50
-- (BExp_Load BExp_Den (BVar R1) (BExp_Const (bv 0 Bit32)) BEnd_LittleEndian Bit64) 
+- (BExp_Load BExp_Den (BVar REG 1) (BExp_Const (bv 0 Bit32)) BEnd_LittleEndian Bit64) 
 # Load value from memory address 0 in R1, in little endian, 64 bits
-- (BExp_Store BExp_Den (BVar  R1) (BExp_Const (bv 0 Bit32)) BEnd_LittleEndian 
+- (BExp_Store BExp_Den (BVar  REG 1) (BExp_Const (bv 0 Bit32)) BEnd_LittleEndian 
 (BExp_Const(bv 2 Bit32))) # Store value 2 in memory address 0 in R1, in little endian
 - (OPERAND-VALUE 1) # Return the value of the operand for the operation code 1
 - (OPERAND-TYPE 1) # Return the type of the operand for the operation code 1
