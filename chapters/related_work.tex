@@ -2,16 +2,16 @@
 \label{cha:related_works}The paper that has been the most important for this
 thesis is that of Linder, Guanciale and Metere et al. \cite{bir_pub}. This article
 that I refered multiple times in this thesis, is focused mainly in the automated
-verification of binary files, proving their validity and correctness. To
-archieve this goal, the authors created a new language, called Binary
-Intermediate Representation (BIR), that could describe the Instruction Set Architecture
-(ISA) of a CPU in a platform-independent way, to pursue their goals. This is the
-birth of the BIR language, that has been used in this thesis. The article's writers
-are also part of the same research group that I have been part of, so the
-stimuli and the ideas that have been developed in this paper have been the base
-of the motivation for using BIR in the Malcos codebase.
+verification of binary files, proving their validity and correctness. To archive
+this goal, the authors created a new language, called Binary Intermediate
+Representation (BIR), that could describe the Instruction Set Architecture (ISA)
+of a CPU in a platform-independent way, to pursue their goals. This is the birth
+of the BIR language, that has been used in this thesis. The article's writers are
+also part of the same research group that I have been part of, so the stimuli
+and the ideas that have been developed in this paper have been the base of the
+motivation for using BIR in the Malcos code.
 
-Also, another important piece of reseach for the scope of this thesis has been the
+Also, another important piece of research for the scope of this thesis has been the
 research done by Microsoft researchers, in particular in Oleksii Oleksenko, Christof
 Fetzer, Boris Köpf, Mark Silberstein et al. \cite{article}. This article is where
 the Revizor tool has been presented, and some vulnerabilities of some CPUs were
@@ -28,4 +28,77 @@ speculation could be better understood. This paper has been important for the
 thesis, since it allowed me to fully understand some concepts around the speculation
 and contracts. This is also a foundation paper for the Malcos project, since Marco
 Guarnieri, one of the author, is one of the main contributors to the Malcos project,
-and has also been one on the Revizor codebase.
+and has also been one on the Revizor code.
+
+\chapter{Conclusion}
+\label{cha:conclusion}
+\section{Considerations}
+\label{cha:Considerations} This focus of this thesis is the development of the pipeline
+for being able to use the BIR language in the Malcos project. This is because
+the legacy language, the DSL, was not inadequate for the needs and scale of the
+project. To then provide a more research-based and robust solution, this
+transition was necessary.
+
+In the end, the switch from the legacy DSL to the BIR language was successful,
+in the sense that we validate the pipeline, as described in the previous chapters.
+The more complex language that was introduced allowed for more powerful
+synthesis of contract, but also took a slight performance hit, inherent to the
+complexity of the language. With respect to whether this switch was actually worth
+it, is hard to assess a priori. The Malcos project, even with all his ambitions,
+has not reached a stage where the contracts are actually so complicated, and so
+the DSL could have been enough. Even though the project is supposed to grow a lot
+in the future and being part of a bigger tool chain, and therefore be able to
+synthesize more complex contracts, for example real-world CPU ones, having a
+more robust and complete language seemed a reasonable choice. We have to bare in
+mind, though, that we do not know how actually even the most complex contracts looks
+like, so we do not know if BIR is actually too complex, or even to simple for the
+task, and if the performance will be a bottleneck in the future.
+
+It seems unreasonable that BIR is not powerful enough, since it is able to represent
+all the CPU operations, and therefore should be able to represent any contract, unless
+new concepts are discovered in further research. On the other hand, the possibility
+that BIR is too complex is more likely, given his completeness and
+expressiveness. This could backfire, since BIR can be harder to read, since more
+verbose than the legacy DSL, minimizing therefore the readability of the
+contracts by humans.
+
+In the end, though, both the cases in which BIR is not the best fit are quite
+remote, so this switch was worth the effort, and it is better that has been done
+at early stage of the project, where all the tooling is not yet fully developed,
+otherwise the re-factor could have been larger and more painful.
+
+Regardless of the actual final necessity or not, the switch came with the cost of
+a slight performance hit, given the complexity and recursive nature of the BIR
+language. This is the feature that allows it to be so powerful and expressive,
+but also that makes it harder and slower to generate with Rosette.
+
+It is also worth considering that Malcos is not the only project in mind of the
+reseach group. It could just be the first step of a bigger tool chain for security
+analysis at CPU binary level. Therefore, for future works, detailed in section
+\ref{cha:Future work}, the switch to BIR could be a crucial step, and definetly
+worth the effort.
+
+\section{Future work}
+\label{cha:Future work} This project, overall, has a huge potential for
+different use cases an research paths. The first thing that seems to have the higher
+potential is to, once the contract of the CPU has been synthesized, we know all the
+potential vulnerabilities that could be exploited. Using this pointer, a good use
+of this information would be to create some compiler-level checks or modification
+to the target code so that the code becomes actually secure. This possible
+evolution has huge potential, since this could almost eliminate the risks that speculation
+brings, and only leaving the improvements that it has to offer. This could be a huge
+step forward in the world of security, and could also interest a lot of vendors.
+
+An eventual alternative could be to patch the code afterwards, even though this seems
+to be a less appealing goal, since this would add another step in the
+compilation process, making it slower. And for large code this would be a
+bottleneck, while directly writing the compiled code with the possible security flaw
+in mind could yield better results in term of compilation performance.
+
+Eventually, the knowledge of the contract of the CPU could be an information
+that could help in the discover of new vector of attack, some other alternative to
+Specter as Revizor's team discovered. Also this could let room for improvement
+in the security of the speculation practice, allowing for secure increase in performance.
+
+Overall, every possible future work seems to have potential, and also remain in the
+domain of security and low level programs.

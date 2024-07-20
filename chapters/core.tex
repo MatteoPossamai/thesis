@@ -1,116 +1,112 @@
 \chapter{Core}
-\label{cha:core} In this chapter, there will be the discussion of the
-contribution made in this thesis in the project codebase, with the goal of switching
-the language pipeline from the DSL to BIR.
+\label{cha:core} In this chapter, there is the discussion of the contribution
+made in this thesis in the project code, with the goal of switching the language
+pipeline from the DSL to BIR.
 
-We will start from the first step of the pipeline in \ref{cha:Parsing BIR},
-where there will be the discussion of the implementation of the parser for the
-BIR language, how it was done, the instruments and the outcome. We will then check
-the correctness of the produced parser in the following section \ref{cha:Validating
-the parsing}, where there will be the an in depth explaination of all the
-developed tests and methodologies to validate the parser validity and robustness.
-In the next section \ref{cha:Tracing the parsed BIR}, there will be the
-development of the next step in the pipeline, the tracer, the component that
-populates the values seen in the CPU, and is used to then populate the contract.
-To do so, it needs to interpret the parsed BIR language and take trace of the computed
-values. All the tests and validation for this component are then discussed in
-the section \ref{cha:Validating the tracing}. Here there will be a really in-depth
-discussion of all the test's types and the motivations that brought us to write them.
-In the section \ref{cha:Generating the Rosette code}, there will be the discussion
-of the development of the grammar in the Rosette language, allowing therefore
-the generation of new costants for the contract, closing the loop of the project.
-In the section \ref{cha:Validating the pipeline}, there will be the discussion of
-the validation of the whole developed pipelines, with some example of the tests.
-In the following section \ref{cha:Code migration and documentation}, there will
-be a brief discussion of the migration of the codebase from the DSL to BIR, the merge
-operation and the documentation created for the developers of the project, to
-allow them to understand the new pipeline and contribution. In the following section
-\ref{cha:Migration to Rust}, there will be a discussion of the eventual
-migration to Rust, the pros and cons of this operation, and the reasons that
-brought us to our choice. The chapter is closed in the section \ref{cha:Future
-work}, where there will be a brief discussion about the possible future
-development of the project, and the use cases that it will have once completed fully.
+We start from the first step of the pipeline in \ref{cha:Parsing BIR}, where
+there is the discussion of the implementation of the parser for the BIR language,
+how it has been done, the instruments and the outcome. We then check the correctness
+of the produced parser in the following section \ref{cha:Validating the parsing},
+where there is the in depth explanation of all the developed tests and
+methodologies to validate the parser validity and robustness. In the next section
+\ref{cha:Tracing the parsed BIR}, there is the development of the next step in
+the pipeline, the tracer, the component that populates the values seen in the
+CPU, and is used to then populate the contract. To do so, it needs to interpret the
+parsed BIR language and take trace of the computed values. All the tests and
+validation for this component are then discussed in the section
+\ref{cha:Validating the tracing}. Here there is be a really in-depth discussion of
+all the test's types and the motivations that brought us to write them. In the
+section \ref{cha:Generating the Rosette code}, there is the discussion of the development
+of the grammar in the Rosette language, allowing therefore the generation of new
+constraints for the contract, closing the loop of the project. In the section
+\ref{cha:Validating the pipeline}, there is the discussion of the validation of the
+whole developed pipelines, with some example of the tests. In the following section
+\ref{cha:Code migration and documentation}, there is a brief discussion of the
+migration of the code from the DSL to BIR, the merge operation and the documentation
+created for the developers of the project, to allow them to understand the new
+pipeline and contribution.
 
 \section{Parsing BIR}
-\label{cha:Parsing BIR} The first step in the pipeline is parsing the BIR language.
-We start from a raw string given as input, and we first want to detemine whether
-this string is valid BIR code, and if it is the case, parse it into some readable
-and consumable data structure that we can use in following steps. In order to
-archieve this goal, we first needed to have in mind a clear idea of the semantic
-of the language, the grammar and the regex that it is generated from. In order to
-do so, I read with the paper that defines the language (\cite{bir_pub}), and had
-various chats with the researchers who are in charge of the project, with
-specific focus on the BIR language. Some of these person were the researchers that
-actually developed BIR in the first place, so it was the perfect environment for
-this research. With them, I understood the grammar, the main features and constructs
-of the language, and I began to be familiar with the semantic. I wrote some examples
-of the code in the section \ref{cha:BIR}. We decided so, that we needed all the basics
-expressions of the language, so the if then else, the binary operations, the
-memory operations, the unary operations, the predicates, constant values and variables.
-After some time, we also decided to add the OPERAND operators, since they became
-needed for the project as a whole.
+\label{cha:Parsing BIR} The first step in the pipeline is parsing the BIR
+language. We start from a raw string given as input, and we first want to
+determine whether this string is valid BIR code, and if it is the case, parse it
+into some readable and consumable data structure that we can use in following
+steps. In order to archive this goal, we first needed to have in mind a clear
+idea of the semantic of the language, the grammar and the regex that it is generated
+from. In order to do so, we read with the paper that defines the language (\cite{bir_pub}),
+and had various chats with the researchers who are in charge of the project, with
+specific focus on the BIR language. Some of these person were the researchers
+that actually developed BIR in the first place, so it was the perfect environment
+for this research. With them, we understood the grammar, the main features and
+constructs of the language, and we began to be familiar with the semantic. We
+wrote some examples of the code in the section \ref{cha:BIR}. We decided so,
+that we needed all the basics expressions of the language, so the if then else,
+the binary operations, the memory operations, the unary operations, the predicates,
+constant values and variables. After some time, we also decided to add the
+OPERAND operators, since they became needed for the project as a whole.
 
-Once I had this clear idea of the language in mind, it was time to start developing
-the new parser. I did it following the same approach used to developed the
-previous one, but adaping the code to the specificities of BIR. I wrote the
-parser using the Python library `pyparsing' (\cite{pyparsing}). It is a Parsing Expression
-Grammar (PEG) parser, meaning that it is able to parse given strings starting
-from a regular expression (or more than one) generated by the developer. This library
-is really powerful, and it is able to parse complex languages, with a lot of features.
-It is also quite easy to use, and with good documentation. It has different
-built-in functions that allows to create powerful regex, such as the option for creating
-object that appears `OneOfMore' times, or `ZeroOrMore' times, and so on. This
-allows the developer to focus more on the regex of the language itself, without the
-need to focus on complex details about the implementation of the parsing.
-Creating a new parser completely from scratch would have been a story of its own,
-as we will also see in the section \ref{cha:Migration to Rust}.
+Once we had this clear idea of the language in mind, it was time to start
+developing the new parser. we did it following the same approach used to developed
+the previous one, but adapting the code to the specificities of BIR. We wrote the
+parser using the Python library `pyparsing' (\cite{pyparsing}). It is a Parsing
+Expression Grammar (PEG) parser, meaning that it is able to parse given strings starting
+from a regular expression (or more than one) generated by the developer. This
+library is really powerful, and it is able to parse complex languages, with a
+lot of features. It is also quite easy to use, and with good documentation. It has
+different built-in functions that allows to create powerful regex, such as the
+option for creating object that appears `OneOrMore' times, or `ZeroOrMore' times,
+and so on. This allows the developer to focus more on the regex of the language itself,
+without the need to focus on complex details about the implementation of the
+parsing. Creating a new parser completely from scratch would have been a story of
+its own, as we also see in the chapter \ref{cha:Migration to Rust}.
 
-Then, to develop this parser, I dived deep into the language and created all the
-regular expressions needed to represent the full specification of the language itself.
-Since it can generate quite long string, a lot of the code was split in different
-sub-functions, objects and routines in the file, to allow better code reuse and less
-confusion for future readers and developers. Thanks to the possibilities that `pyparsing'
-offers, I also implemeted some static checks in place, so that there was a
-higher level of rubustness in the parser. An example is the check for the types of
-operand expected, if they were effectively number that could be parsed or if the
-syntax used to describe the regiters was right, and the register code number actually
-existed.All of this to have the fully fledged parser functionalities.
+Then, to develop this parser, we dived deep into the language and created all
+the regular expressions needed to represent the full specification of the
+language itself. Since it can generate quite long string, a lot of the code was
+split in different sub-functions, objects and routines in the file, to allow
+better code reuse and less confusion for future readers and developers. Thanks to
+the possibilities that `pyparsing' offers, we also implemented some static
+checks in place, so that there was a higher level of robustness in the parser.
+An example is the check for the types of operand expected, if they were effectively
+number that could be parsed or if the syntax used to describe the regiters was right,
+and the register code number actually existed.All of this to have the fully
+fledged parser functionalities.
 
-Once the grammar was fully created, I created the class structure that `pyparsing'
-needs to put all the parsed string, so we can after the parsing also trace and evaluate
-the expression. This class can be seen as a parsing tree, from a high level. I
-created this class, that according to the generated keyword, it would have some
-specific attributes that will be used in future steps of the pipeline. It behaves
-as a generic type, or a sort of enum, according to the specific construct it is modeling.
-This approach was not quite optimal, you cannot infer directly what type of expression
-is being represented, unless you check the used attributes. So, I added the `keyword'
-attribute, to make clear and easier to understand what type of expression was used
-and allow for more readable code. Other languages different from Python, such as
-Rust, can do this with generics or enums, that are features not offered by Python.
-This is one of the reasons that made us thinking about switching the language of
-this thesis's project to Rust, as we will see in the section \ref{cha:Migration
-to Rust}.
+Once the grammar was fully created, we created the class structure that `pyparsing'
+needs to put all the parsed string, so we can after the parsing also trace and
+evaluate the expression. This class can be seen as a parsing tree, from a high
+level. I created this class, that according to the generated keyword, it would have
+some specific attributes that is used in future steps of the pipeline. It
+behaves as a generic type, or a sort of enum, according to the specific
+construct it is modeling. This approach was not quite optimal, you cannot infer
+directly what type of expression is being represented, unless you check the used
+attributes. So, we added the `keyword' attribute, to make clear and easier to
+understand what type of expression was used and allow for more readable code. Other
+languages different from Python, such as Rust, can do this with generics or enums,
+that are features not offered by Python. This is one of the reasons that made us
+thinking about switching the language of this thesis's project to Rust, as we
+see in the section \ref{cha:Migration to Rust}.
 
-I called this class `BEXP', as Binary Expression. This class is istantiated when
-the parser finds a binary expression, and it is used to the eventual operands, or
-operation types. Also, this section of the code has been modularized as much as possible,
-so in case there is the need to add new constructs or features it should be as
-easy as possible.
+We called this class `BEXP', as Binary Expression. This class is istantiated
+when the parser finds a binary expression, and it is used to the eventual operands,
+or operation types. Also, this section of the code has been modularized as much
+as possible, so in case there is the need to add new constructs or features it should
+be as easy as possible.
 
-I did this the first time with all the specification created in the first
-meetings, and then added when the necessity arised, also the part for the
-parsing of the OPERAND operators. The modularity made it easier than expected to
-add also the newly added requirements, allowing for faster development times. In
-the end, the artifact for this step was a Python file with multiple classes and
-functions, that allows the parsing of all valid BIR strings, and the creation of
-a `BEXP' object accoring to the parsing string content. In case this is not possible,
-due to some errors, it throws an exception error, with the character that caused
-the error, since not expected. `pyparsing' demostred to be extremely powerful, very
-user friendly, and fast both in terms of runtime execution, but also in writing time
-needed, debugging and learing curve. And since it was already used from the other
-members of the team, it does not introduce complexity or technical debt of any
-kind, so in future can be maintained and updated with ease, if we also consider
-the modularity added by design.
+We did this the first time with all the specification created in the first meetings,
+and then added when the necessity arose, also the part for the parsing of the OPERAND
+operators. The modularity made it easier than expected to add also the newly
+added requirements, allowing for faster development times. In the end, the artifact
+for this step was a Python file with multiple classes and functions, that allows
+the parsing of all valid BIR strings, and the creation of a `BEXP' object according
+to the parsing string content. In case this is not possible, due to some errors,
+it throws an exception error, with the character that caused the error, since
+not expected. `pyparsing' showed to be extremely powerful, very user friendly, and
+fast both in terms of runtime execution, but also in writing time needed, debugging
+and learning curve. And since it was already used from the other members of the
+team, it does not introduce complexity or technical debt of any kind, so in
+future can be maintained and updated with ease, if we also consider the modularity
+added by design.
 
 To introduce the new parser in the codebase, it was enough to add a if statement
 at boot time, that accoring to the configuration used to run the project, if the
@@ -118,114 +114,121 @@ selected language was `bir', then the used parser would have been `BIRParser' in
 place of the legacy `Parser'.
 
 \section{Validating the parsing}
-\label{cha:Validating the parsing} Then it was time for validating the parsing. Since
-this is the first and arguably most fundamental step in the pipeline, it needed
-a quite big and comprehensive test suite, to certify its correctness. In order
-to archieve this, for each possible construct of the language, I wrote different
-test cases. They could be tests where a valid string was parsed, and I checked
-that the class instance output contained in fact what I wanted and expected from
-it. This was effectively a visit of the parse tree generated, inspecting all the
-values and checking their correctness. Another type of test that I implemented was
-the creation of invalid BIR string, and I expected a failure from the parser. If
+\label{cha:Validating the parsing} Then it was time for validating the parsing.
+Since this is the first and arguably most fundamental step in the pipeline, it needed
+a quite big and comprehensive test suite, to certify its correctness. In order to
+archive this, for each possible construct of the language, we wrote different test
+cases. They could be tests where a valid string was parsed, and we checked that the
+class instance output contained in fact what we wanted and expected from it.
+This was effectively a visit of the parse tree generated, inspecting all the values
+and checking their correctness. Another type of test that we implemented was the
+creation of invalid BIR string, and we expected a failure from the parser. If
 that would not happen, then there was some issue in the current implementation.
 
-For all the testing, also in section \ref{cha:Validating the tracing}, I used
-the Python library `unittest'. This library allows to create a `TestCase' class instance,
-in which developers can define their test cases. The class allows for a `setUp' method
-that is executed before the whole testcase suite is. Then, all the methods that has
-a function name starting with `test' are executed. In the function, I inserted many
-`assert' statements, to check that the outcome of the executed function was what
-I expected. If the test runs as expected and all the assertions are met, the the
-test is counted as passed, otherwise it fails. In the end of the simulation, the
-library also provides a brief summary of all the executed tests, how many passed
-and the error that caused the failure of the failed ones. Also this library has proven
-to be extremely powerful and capable. Making it easy to write the test suite. In
-fact, this library has been used also in all the testing done in this thesis, but
-is also the standard the facto for testing any kind of Python code, both in the
-word of research and in industry. Therefore, the choice was quite obvious and
-easy. To then, in the end be able to run all the generate tests, I also wrote a brief
-shell script, which executed all the tests and made some prettier printing of
-the results.
+For all the testing, also in section \ref{cha:Validating the tracing}, we used the
+Python library `unittest'. This library allows to create a `TestCase' class
+instance, in which developers can define their test cases. The class allows for
+a `setUp' method that is executed before the whole test case suite is. Then, all
+the methods that has a function name starting with `test' are executed. In the function,
+we inserted many `assert' statements, to check that the outcome of the executed function
+was what we expected. If the test runs as expected and all the assertions are
+met, the the test is counted as passed, otherwise it fails. In the end of the simulation,
+the library also provides a brief summary of all the executed tests, how many passed
+and the error that caused the failure of the failed ones. Also this library has
+proven to be extremely powerful and capable. Making it easy to write the test suite.
+In fact, this library has been used also in all the testing done in this thesis,
+but is also the standard the facto for testing any kind of Python code, both in the
+word of research and in industry. Therefore, the choice was quite obvious and easy.
+To then, in the end be able to run all the generate tests, we also wrote a brief
+shell script, which executed all the tests and made some prettier printing of the
+results.
 
-Doing this part has been extremely useful, since it allowed to check that the current
-implementation was correct, and also in the meantime, while correcting the errors,
-be sure that I did not broke any working piece of the software. The last part of
-the implementation has been done alongside the testing, since this improved the
-speed and productivity of code writing and effective artifacts produced. This allows
-in the future, to do some addition to the parser, and test automatically in a matter
-of milliseconds if the implemented change did not break anything. This gave me
-also a chance to approach Test-Driven Development (TDD), that is a developing methodology
-quite popular, and understand the benefits it provides.
+Doing this part has been extremely useful, since it allowed to check that the
+current implementation was correct, and also in the meantime, while correcting
+the errors, be sure that we did not broke any working piece of the software. The
+last part of the implementation has been done alongside the testing, since this improved
+the speed and productivity of code writing and effective artifacts produced.
+This allows in the future, to do some addition to the parser, and test
+automatically in a matter of milliseconds if the implemented change did not
+break anything. This gave me also a chance to approach Test-Driven Development (TDD),
+that is a developing methodology quite popular, and understand the benefits it provides.
 
 \section{Tracing the parsed BIR}
 \label{cha:Tracing the parsed BIR} The next step in the pipeline was tracing the
-parsed BIR code. This means that I needed to create a tracer, a piece of
-software that, given the contract written in BIR and the state of the CPU,
-called `model' in this project, it would be able to populate the trace. The
-trace is a list data structure that contains all the information that are
-evaluated from the CPU, accoring to its contract. So, if I ask with a BIR contract
-to evaluate a conditional statement (if then else) with a true condition, and
-then accoringly return the value in the register RAX or RBX, I expect to find in
-the trace the value contained in the RAX register.
+parsed BIR code. This means that we needed to create a tracer, a piece of software
+that, given the contract written in BIR and the state of the CPU, called `model'
+in this project, it would be able to populate the trace. The trace is a list data
+structure that contains all the information that are evaluated from the CPU,
+according to its contract. So, if we ask with a BIR contract to evaluate a
+conditional statement (if then else) with a true condition, and then accordingly
+return the value in the register RAX or RBX, we expect to find in the trace the
+value contained in the RAX register.
 
-The step of tracing is really important, because this allow us to check what
-information are leaked by the contract. Then, we are able to infer the knowledge,
-and add more constraint to the CPU contract, and then check loop over again, up to
-we reach a fixed point, as detailed in the section \ref{cha: Loop outlook}.
+The step of tracing is really important, because this allow us to check what information
+are leaked by the contract. Then, we are able to infer the knowledge, and add
+more constraint to the CPU contract, and then check loop over again, up to we
+reach a fixed point, as detailed in the section \ref{cha: Loop outlook}.
 
-To accomplish this goal of tracing the contracts, populating the trace and allowing
-the project to run his loop, I needed to create a new class for this purpose. To
-maintain the codebase as close as his original state, and not bring too much
-complexity, I followed the same approach used for the legacy tracer for the DSL.
-I created the class `BIRParametricTracer', that is a subclass of `UnicornTracer'.
-The `UnicornTracer' class is a defined class in the codebase of the Malcos
-project, and it is a subclass of `ABC' class, that is a Python standard abstract
-class. The `UnicornTracer' class is used therefore as an interface inside the codebase,
-to allow for the creation of different tracers, and all will have a trace,
-meaning and empty list to populate, and a `getContractTrace', that returns the
-hash of the trace. This pattern is quite common in Python code that uses Object Oriented
-Programming (OOP), and is the way that Python does it, since interfaces are not native
-to Python syntax.
+To accomplish this goal of tracing the contracts, populating the trace and
+allowing the project to run his loop, we needed to create a new class for this purpose.
+To maintain the code as close as his original state, and not bring too much complexity,
+we followed the same approach used for the legacy tracer for the DSL. we created
+the class `BIRParametricTracer', that is a subclass of `UnicornTracer'. The `UnicornTracer'
+class is a defined class in the codebase of the Malcos project, and it is a
+subclass of `ABC' class, that is a Python standard abstract class. The `UnicornTracer'
+class is used therefore as an interface inside the codebase, to allow for the creation
+of different tracers, and all has a trace, meaning and empty list to populate,
+and a `getContractTrace', that returns the hash of the trace. This pattern is
+quite common in Python code that uses Object Oriented Programming (OOP), and is the
+way that Python does it, since interfaces are not native to Python syntax.
 
-Before I started developing the `BIRParametricTracer', I read the code of the
-legacy tracer, to see how it was actually implemented, what were the main
-features and methods needed, and eventually how to perform some low-level operations
-with numbers and registers. Unfortunately, the legacy tracer was not fully implemented,
-and a lot of methods and features were not implemented (they simply throwed a `NotImplementedError').
-So, for the majority of the code I wrote, I did my own research and done a lot of
-trial and error. But this also gave me the freedom to choose the approach I
-prefered the most, so I was able to structure the code in the way I felt was the
-best, and eventually change my mind and refactor it. In particular, I
-modularized a lot more all the needed functions for low level operations, and made
-the functions more robust. This was due to the advantages that modularizing
-brought me in the Parser development, and in the Tracer as well.
+Before we started developing the `BIRParametricTracer', we read the code of the legacy
+tracer, to see how it was actually implemented, what were the main features and methods
+needed, and eventually how to perform some low-level operations with numbers and
+registers. Unfortunately, the legacy tracer was not fully implemented, and a lot
+of methods and features were not implemented (they simply throw a `NotImplementedError').
+So, for the majority of the code we wrote, we did my own research and done a lot
+of trial and error. But this also gave me the freedom to choose the approach I preferred
+the most, so we was able to structure the code in the way we felt was the best, and
+eventually change my mind and re-factor it. In particular, I modularized a lot more
+all the needed functions for low level operations, and made the functions more
+robust. This was due to the advantages that modularizing brought me in the Parser
+development, and in the Tracer as well.
 
-The `BIRParametricTracer' works as follows: For all the instruction that the CPU
-executes, it then checks and evaluates all the contract in the CPU. It means
-that all the contracts are parsed, and then the final result computed with the `evalExp()'
-function is stored in the trace. I stress about only the last since there might
+The `BIRParametricTracer' works as follows:
+\begin{itemize}
+  \item For all the instruction that the CPU exetutes
+
+  \item Checks and evaluates all the contract in the CPU. It means that all the
+    contracts are parsed, and then the final result computed with the `evalExp()'
+    function is stored in the trace
+
+  \item Returns the computed trace
+\end{itemize}
+
+Note that we stress about the fact that we store only the last since there might
 be some recursion, for example in a if then else, where the true statement is a
-sum between the value of two registers. Therefore, to evaluate this, I have to do
+sum between the value of two registers. Therefore, to evaluate this, we have to do
 first the sum and then return it, both as a result of the sum and the if then
-else, but this value will be in the trace just once. Or to eventually compute
-the truthness of the predicate, I need to perform some operations that yields a result,
-that is not stored in the trace. To archieve this, in the `evalExp()' function, I
+else, but this value is in the trace just once. Or to eventually compute the
+validity of the predicate, we need to perform some operations that yields a result,
+that is not stored in the trace. To archive this, in the `evalExp()' function, we
 added a parameter named `trace', that by default would be False, but if you passed
 as True, it would store in the trace. So, on the main call you can put the value
 to True, and then once the function performs recursive computation, the result
-of intermediate steps will not be stored in the trace. In this function, there
-is a big `match-case' statement, that maps all the keywords of the parsed `BEXP'
-class into a specific function. Here is where the recognition of the expression
-that was implemented in the tracer becomes necessary. This functions then yield the
-final result of the computation, even performing recursion when needed. Since BIR
-allows to have numeric values that are also represented with the precision (meaning
-8 Bits, 16 Bits and so on), all the functions did not return the raw value of the
-computation, but a tuple with the value and the precision, so that the caller could
-check that precision were matching and also check for errors of overflow. Since
-most of the operations that the tracer was able to evaluate were binary, a lot of
-the code to perform that was not ready out of the box from the Python language,
-so I needed to write some of the code from scratch. This took some time, but was
-worth it, since now the code does not rely on external libraries.
+of intermediate steps is not be stored in the trace. In this function, there is
+a big `match-case' statement, that maps all the keywords of the parsed `BEXP' class
+into a specific function. Here is where the recognition of the expression that
+was implemented in the tracer becomes necessary. This functions then yield the final
+result of the computation, even performing recursion when needed. Since BIR allows
+to have numeric values that are also represented with the precision (meaning 8
+Bits, 16 Bits and so on), all the functions did not return the raw value of the computation,
+but a tuple with the value and the precision, so that the caller could check that
+precision were matching and also check for errors of overflow. Since most of the
+operations that the tracer was able to evaluate were binary, a lot of the code to
+perform that was not ready out of the box from the Python language, so we needed
+to write some of the code from scratch. This took some time, but was worth it, since
+now the code does not rely on external libraries.
 
 In the end, the `BIRParametricTracer' implemented the following methods: \begin{verbatim}
     eval_expr() -> Evaluate the expression and trace eventually
@@ -248,62 +251,61 @@ So, the final artifact of this step was adding the `BIRParametricTracer' to the 
 `model.py' of the project and, as in the case for the parser, add the if statement
 int the main that checks the configurations and eventually uses it as the default
 tracer. This took some iterations and various meetings with the team of
-researchers, to be sure that the behauvior of the tracer was the expected one.
+researchers, to be sure that the behavior of the tracer was the expected one.
 This means that some modules of the tracer was written several times, yielding in
 the end a version that can fully and correctly trace the BIR contracts.
 
-In the next section, we will cover how we were able to validate the tracing
+In the next section, we cover how we were able to validate the tracing
 correctness, and therefore move to the next step of the pipeline.
 
 \section{Validating the tracing}
 \label{cha:Validating the tracing} The tracing step of the pipeline is quite crucial,
 since from it correctness depends all the following steps. So, the tests needed
 to be quite robust and cover all the possibilities that could occur while using
-the tracer. To archieve this, I wrote two different sets of tests, of two different
-kind. In this section I will cover both of them. All of the tests, as in the
-case for the parser has beed done using the Python package `unittest', and its class
-`TestCase', for code coherence, as in section \ref{cha:Validating the parsing}.
-\\
+the tracer. To archive this, we wrote two different sets of tests, of two different
+kind. In this section we cover both of them. All of the tests, as in the case
+for the parser has been done using the Python package `unittest', and its class `TestCase',
+for code coherence, as in section \ref{cha:Validating the parsing}. \\
 
 The first family of tests was the one that checked that the output of the evaluation
 function was actually correct, and therefore the computation made by the custom
 function developed in the previous section was correct. This could be seen as the
-unit test for this step of the pipeline. To archieve this, for every possible construct
-of the BIR language, I listed a number of possible inputs, and I hardcoded the expected
-output. Then I executed the tracer and read the output it would produce, and compare
-to the expected one. If they matched, the test was passed. This was done for all
-the possible constructs, all the operation that the construct allowed, with
-normal cases and limit cases. Most of the limit cases relied on possible overflows
-or similar sort of binary-level issues. I wrote tests of nested expression, to see
-if the recursion was handled correctly, and also tests with data with different
-precisions, expecting errors.
+unit test for this step of the pipeline. To archive this, for every possible construct
+of the BIR language, we listed a number of possible inputs, and we hardcoded the
+expected output. Then we executed the tracer and read the output it would
+produce, and compare to the expected one. If they matched, the test was passed.
+This was done for all the possible constructs, all the operation that the construct
+allowed, with normal cases and limit cases. Most of the limit cases relied on possible
+overflows or similar sort of binary-level issues. we wrote tests of nested
+expression, to see if the recursion was handled correctly, and also tests with
+data with different precisions, expecting errors.
 
-I grouped the tests in sets, each one corresponding to a single construct, so that
-I could create a unique test that did the whole testing for that construct in one
+We grouped the tests in sets, each one corresponding to a single construct, so that
+we could create a unique test that did the whole testing for that construct in one
 function. This allowed to make the testing pipeline more performant and to have
 a more readable and extensible test suite, with way less useless and dispersive lines
-of code. In the end, I wrote almost a hundred tests, that covered all the
+of code. In the end, we wrote almost a hundred tests, that covered all the
 possible cases that could occur while running the tracer, and this could easily be
 extended in the future if there is the need or new expression are added, of for
 even more robust and strict checking. \\
 
 The second family of tests was the one that checked that the `BIRParametricTracer'
-and the legacy tracer, if runned with equivalent contracts (even though written
-in different languages) with the same underlying assembly instructions, would
-yield the same trace, and therefore, assuming the correctness of the legacy
-tracer, the correctness of the new one. This can be seen as the integration test.
-This test was quite tricky since, as said at the beginning of last section, the legacy
-tracer was not fully implemented, and some of the constructs or operations were
-not there, so some tests were indeed impossible with this setup. Despite that, the
-implemented section was enough to validate the most used operations and constructs,
-allowing to have a big enough coverage of the most frequent code snippets that
-occurs in CPU contracts, and leaving the rest to the first family of tests. To
-do this tests, I also needed a basic model of the CPU to run instructions on. So
-I created multiple assembly files, with various set of instruction, to make the
-tracing more complex, adding branches, jumps and modifications to register's
-values.
+and the legacy tracer, if launched with equivalent contracts (even though
+written in different languages) with the same underlying assembly instructions,
+would yield the same trace, and therefore, assuming the correctness of the
+legacy tracer, the correctness of the new one. This can be seen as the
+integration test. This test was quite tricky since, as said at the beginning of
+last section, the legacy tracer was not fully implemented, and some of the
+constructs or operations were not there, so some tests were indeed impossible with
+this setup. Despite that, the implemented section was enough to validate the most
+used operations and constructs, allowing to have a big enough coverage of the
+most frequent code snippets that occurs in CPU contracts, and leaving the rest to
+the first family of tests. To do this tests, we also needed a basic model of the
+CPU to run instructions on. So we created multiple assembly files, with various set
+of instruction, to make the tracing more complex, adding branches, jumps and
+modifications to register's values.
 
-So, in this test family, I wrote multiple cases, in particular:
+So, in this test family, we wrote multiple cases, in particular:
 \begin{itemize}
   \item A basic test with just evaluation of an always true if then else,
     reading the program counter, in a linear assembly code
@@ -319,47 +321,46 @@ So, in this test family, I wrote multiple cases, in particular:
 
   \item A test with constant values in a branched assembly code
 
-  \item A test with non deterministec if then else outcode in a randomically-generated
+  \item A test with non deterministic if then else outcome in a random-generated
     assembly code
 
-  \item A test reading the program counter in a randomically-generated assembly code
+  \item A test reading the program counter in a random-generated assembly code
 
-  \item Multiple contracts in a randomically-generated assembly code
+  \item Multiple contracts in a random-generated assembly code
 \end{itemize}
 
-All this contracts were checks that I actively decided to implement in order to validate
-correctness. A part from this list, some other contracts where given from the researchers,
-since they were the contracts they were using to test the whole existing
-pipeline of the project, that will include mine. Some of this contracts, were in
-fact more complex and fully fledged cases of contracts, and not just atomic
-tests such as this ones that I just listed. So it was worth seeing if, with this
-bigger and complex suite of cases, the tracer would produce the same expected and
-desired outcome.
+All this contracts were checks that we actively decided to implement in order to
+validate correctness. A part from this list, some other contracts where given from
+the researchers, since they were the contracts they were using to test the whole
+existing pipeline of the project, that includes ours. Some of this contracts, were
+in fact more complex and fully fledged cases of contracts, and not just atomic
+tests such as this ones that we just listed. So it was worth seeing if, with
+this bigger and complex suite of cases, the tracer would produce the same expected
+and desired outcome.
 
-After testing all this facets of the tracer, I was confident that the
-implementation was correct, and that I could move on to the next step of the toolchain,
-namely the generation of new contracts using Rosette.
+After testing all this facets of the tracer, we was confident that the
+implementation was correct, and that we could move on to the next step of the tool
+chain, namely the generation of new contracts using Rosette.
 
 \section{Generating the Rosette code}
 \label{cha:Generating the Rosette code} The last step of the loop for this
 pipeline was the generation of the constraint using the Rosette language. This meant
 mainly writing a grammar in the Rosette syntax to fully describe the BIR language,
 and then it would have generated the output on its own, leveraging its capabilities
-and the existing part of the codebase that already did this for the legacy pipeline.
+and the existing part of the code that already did this for the legacy pipeline.
 
-In order to archieve this goal, I needed to first have an understanding of the
+In order to archive this goal, we needed to first have an understanding of the
 Rosette language and how it worked. Since it is a Racket-based language, it is a
-functional meta-language, that is something I did not have much experience. Also,
-the errors that it produces are not much informative, and the documentation was
-not so helpful. There is also not a lot of support, since the community is quite
-small, and made up expecially of researchers and academics.
+functional meta-language, that is something we did not have much experience.
+Also, the errors that it produces are not much informative, and the
+documentation was not so helpful. There is also not a lot of support, since the
+community is quite small, and made up especially of researchers and academics.
 
-To give a grasp of what Rosette code actually looks like, I report a snippet of
+To give a grasp of what Rosette code actually looks like, we report a snippet of
 code:
 
 \begin{verbatim}
   (define-grammar (birexp)
-  [bexpr (BEXP (bexp))]
     [bexp
     (choose
         (OPERAND-VALUE (?? integer?))
@@ -384,15 +385,15 @@ with all the expected types and values. As you can see, it is a quite complex
 and verbose language. It is quite similar to list for all the parenthesis, and
 it is easy to guess this is a meta-language.
 
-So, I did a lot of trial and error, but I was able to make some progress, given the
-help that Tiziano Marinaro, a PhD involved in the project gave me. He was one of
-the developers with the most experience with the BIR language and Rosette itself.
+So, we did a lot of trial and error, but we was able to make some progress, given
+the help that Tiziano Marinaro, a PhD involved in the project gave me. He was one
+of the developers with the most experience with the BIR language and Rosette itself.
 His help has been crucial to understand the language and the syntax, and to be able
 to write the grammar.
 
 Once also this step was completed, and Rosette was able to generate back the
 constraint of the contract in BIR, it was finally time to test the fully fledged
-pipeline, as we will see in the next section.
+pipeline, as we see in the next section.
 
 \section{Validating the pipeline}
 \label{cha:Validating the pipeline} One of the most difficult task, also from a conceptual
@@ -404,57 +405,138 @@ Therefore, the approach that was previously used for the legacy pipeline was
 proposed. It consisted in running the tool using configuration files that specified
 that the language used was, in fact, BIR and not the DSL anymore, to trigger the
 if statement that we applied in \ref{cha:Parsing BIR} and
-\ref{cha:Tracing the parsed BIR}. Also, in the file we would set the same
-contracts that were tested with the legacy pipeline, to then being able to compare
-the outcome of the pipelines.
+\ref{cha:Tracing the parsed BIR}. We then created a set of candidate contracts,
+following the ones used by the researchers to test the legacy pipeline, and we run
+the tool on them to see the final output, and test whether is met the expected
+one.
 
-The output was not directly comparable, since one output would have been a set
-of BIR constraints, while the other would have been a set of DSL constraints.
-Therefore, the comparison was a way that could not be used. We then decided to
-have an expected final contract and compare the output of the pipeline with the
-expected one. This would have been the final validation that we needed to fully be
-sure that the pipeline was doing the right thing.
+The output was not directly comparable, since one output would have been a set of
+BIR constraints, while the other would have been a set of DSL constraints. Therefore,
+the comparison was a way that could not be used. We then decided to have an expected
+final contract and compare the output of the pipeline with the expected one.
+This would have been the final validation that we needed to fully be sure that
+the pipeline was doing the right thing and the final outcome was correct.
 
-I implemented this test for a number of contracts from the one that the researchers
-gave me for testing the tracer, that were part of the so-called testing campaing
-of the project. Testing that meant to have the needed final validation of the pipeline
-and the work of this thesis.
+We implemented this test for a number of contracts from the one that the
+researchers gave me for testing the tracer, that were part of the so-called testing
+campaign of the project. Testing that meant to have the needed final validation
+of the pipeline and the work of this thesis.
 
-So, I implemented these final 6 tests, and run them on the new pipeline.
+Here we propose some of the tests that we run, that are part of the testing campaign:
+\begin{itemize}
+  \item BExp\_IfThenElse (BExp\_Const (bv 1 Bit1)) (BExp\_Den (BVar REG 7)) (BE
+    xp\_Const (bv 11 Bit32))
 
-This test gave us the final confirmation that the pipeline was mature enough and
-ready to be merged into the main project, to then let the other researchers
-continue the development of the other features, finally using the desired BIR language.
-This transition and the brief documentation produced will be discussed in the
-next section.
+  \item BExp\_IfThenElse (BExp\_BinExp BIExp\_And (BExp\_BinPred BIExp\_Equal (O
+    PERAND-TYPE 0) (BExp\_Const (bv 1 Bit64))) (BExp\_BinPred BIExp\_Equal (OPERA
+    ND-VALUE 0) (BExp\_Const (bv 0 Bit64))) (BExp\_Den (BVar REG 7)) (BExp\_Con st
+    (bv \# Bit32))
+
+  \item BExp\_IfThenElse (BExp\_BinExp BIExp\_And (BExp\_BinPred BIExp\_Equal (OPCODE
+    0) (BExp\_Const (bv 227 Bit64))) (BExp\_BinPred BIExp\_Equal (OPERAND-VALUE
+    1) (BExp\_Const (bv 0 Bit64))) (BExp\_Den (BVar REG 7)) BExp\_Const (bv \# Bit32))
+
+  \item BExp\_IfThenElse (BExp\_BinExp BIExp\_And (BExp\_BinPred BIExp\_Equal (OPERAND-TYPE
+    1) (BExp\_Const (bv 2 Bit64))) (BExp\_BinPred BIExp\_Equal (OPERAND-ACCESS 1)
+    (BExp\_Const (bv 21 Bit64))) (OPERAND-VALUE 1) BExp\_Const (bv \# Bit32))
+\end{itemize}
+
+The first test is the simplest case. It evaluates always to true, and therefore traces
+the value of the register 7, the Program Counter. The second test is a little bit
+more complex. It checks if the current operand type is 1 and the operand value
+is 0. If this is true then it traces the Program Counter again, otherwise it does
+not trace anything. The third test checks if the current OPCODE is 227 and if
+the operand value is 0, and in that case it traces the Program Counter,
+otherwise it does not trace anything. The last provided example of test checks if
+the OPERAND type is 1 and the OPERAND access is 21, and if this is true, it traces
+the OPERAND value, otherwise it does not trace anything. is 2 and if the operand
+access is 21, and if this is true, it traces the operand value, otherwise it
+does not trace anything. The provided examples are quite representative of the type
+of atomic tests that we run to validate the pipeline.
+
+This list is not comprehensive of all the constraints used for the testing, but
+gives a good idea of all types, grammar and structure that we mostly used for this
+purpose.
+
+Other tests were more complex ones, usually with multiple constraints, such as combining
+the ones provided above, and adding more of them. The most used operations in the
+contracts were all the OPERAND related ones, since they are the most meaningful
+triggers for speculative execution in the mind of the researchers. This means that
+given the type of the operands and eventually their value or their access, the
+cpu could make different speculations, so this is why they are the most used in the
+test contracts.
+
+Once we pass these testing contracts, we start to run the pipeline.As described
+in the chapter \ref{cha: Loop outlook}, we start with a clear contract, and we
+have the passed ones as candidate contract. At this point, we start to run the
+pipeline, and we check the final trace. With the final trace we can then infer
+what constraint the CPU contract has, and we compare it with the expected one.
+We can then add all of these needed constraints to the current contract and loop
+through the pipeline again, up to the point where we reach the fixed point.
+
+To then validate the pipeline, having the contract, knowing what contract we expect
+in the end given the contract candidate exposed previously, we expect a given
+final outcome, the contract that we expect to be generated. We can therefore run
+the whole tool chain, involving the pipeline that we built in this thesis, and
+then check if the final contract is the one that we expected. If that is the case,
+then, the validation is passed and the pipeline is said to be correct.
+
+We run the test provided above, plus a number of other tests, that are mostly a combination
+of the provided ones, seeing the final outcome of the pipeline, and the provided
+result.
+
+In the end, the pipeline was validated by this test, but this tests also showed us
+that the switch from the DSL to BIR had a cost in terms of performance. This is
+because of the nature of the language. BIR is more complex and also tends to be recursive
+in its evaluation, to allow more freedom and powerful expression. This comes with
+a cost, that the Rosette constraints generation tends to be quite slower than it
+previously was. Also the tracing step seems to take longer with BIR, just due to
+its recursive nature, while the DSL was simpler and linear to evaluate.
+Regardless, you can see the difference also in the output of the contract. While
+in the DSL the output was always an IF statement, in BIR if the statement is always
+true the system gets rid of the IF statement, making the constraint of the
+contract shorter and more readable. This is a trade-off that was not foreseen,
+and curious to see.
+
+In the end, in more deterministic terms, the BIR pipeline takes around 3 times
+the time that the DSL pipeline takes, and this is a cost that needs to be paid for
+this more powerful pipeline and language. For the time being, the cost is acceptable,
+and there seems not be a problem in the foreseeable future, but this is something
+hard to assess at the moment.
+
+In the end, regardless of the performance matter, this test gave us the final confirmation
+that the pipeline was mature enough and ready to be merged into the main project,
+to then let the other researchers continue the development of the other features,
+finally using the desired BIR language. This transition and the brief
+documentation produced is discussed in the next section.
 
 \section{Code migration and documentation}
 \label{cha:Code migration and documentation} For all the time of development of
-this thesis, I worked on a separate branch of the project, to allow other
+this thesis, we worked on a separate branch of the project, to allow other
 developer and researchers continue the work on other vital features. This was also
-a way to not break the existing codebase, and to allow for a more controlled and
+a way to not break the existing code, and to allow for a more controlled and
 safe development.
 
-Once I completed the development of my artifacts, it was actually time to merge the
-code into the main branch, to allow the researchers to start developing the
+Once we completed the development of my artifacts, it was actually time to merge
+the code into the main branch, to allow the researchers to start developing the
 project with the BIR pipeline, to then be able to use the new features and the new
 language.
 
 The merge operation was quite smooth, since my contribution was quite isolated. I
 mostly created new greenfield files to be added, and touched just one specific
-file in the main codebase, that is the `model.py', where I added the tracer. In that
-specific file, I just added some new code, without touching the existing one, so
-there were no conflicts. The merge operation was done using `git', since the
+file in the main code, that is the `model.py', where we added the tracer. In that
+specific file, we just added some new code, without touching the existing one,
+so there were no conflicts. The merge operation was done using `git', since the
 project used this tool for versioning, as it is standard almost everywhere. Done
 that, the contribution was then merged, the pipeline ready to be used and the
 language switch completed.
 
 Also, since not all the developers knew BIR right away, and some of them needed
-to be able to the understant its syntax and semantic, there was the need of a brief
-documentation, with all the BIR contructs, all the rules of the grammar, some
+to be able to the understand its syntax and semantic, there was the need of a brief
+documentation, with all the BIR constructs, all the rules of the grammar, some
 examples of the code and special cases.
 
-To accomplish this, I wrote a file called `BIR-README.md', that contained all
+To accomplish this, we wrote a file called `BIR-README.md', that contained all
 the needed information detailed above. This file was then added to the main project.
 It also contains a short and brief set of pointers to the paper that introduced
 BIR language in the first place, to allow for a more in depth understanding of the
@@ -471,32 +553,33 @@ The `\#' operator is used to flag the fact that the constant is not traced, and 
 is empty.
 
 With this brief and hands-on documentation, using BIR became easier for the
-developers that will have to use it.
+developers that have to use it.
 
 Done this, the project had a new pipeline to then consume and produce CPU contracts
 using BIR, as it was the goal of this thesis, and also had the needed documentation.
 This was more or less the conclusion of the work done in this thesis, and the final
 contribution to the project.
 
-While I was working on this project, I also tried to research a way to improve
-the performance and the robustness of the pipeline, and I thought about switching
-to Rust. This parallel research project will be discussed in the next and last
+While we was working on this project, we also tried to research a way to improve
+the performance and the robustness of the pipeline, and we thought about switching
+to Rust. This parallel research project is discussed in the next and last
 section of this chapter.
 
-\section{Migration to Rust}
-\label{cha:Migration to Rust} During and after all the development described in
-the previous steps, we had the idea of trying to write all the logic of the BIR's
-pipeline in Rust. Empirically, Rust is a more performant language confronted to Python,
-it offers a huge variety security features, and it is growing in popularity.
-Therefore, switching from a pure Python implementation to a Rust one (at least a
-Hybrid one) seemed a really logical choice. I then started to make some research
-about how the Rust code could be integrated and if ultimately, this was even a good
-idea. It turned out that it was not, for this specific codebase. But let's see
-why. First, lets focus deeply on the eventual pros that switching to Rust could
-have brought.
+\chapter{Migration to Rust}
+\label{cha:Migration to Rust} During and after all the development described in the
+previous steps, we had the idea of trying to write all the logic of the BIR's
+pipeline in Rust. Empirically, Rust is a more performing language confronted to
+Python, it offers a huge variety security features, and it is growing in
+popularity. Therefore, switching from a pure Python implementation to a Rust one
+(at least a Hybrid one) seemed a really logical choice. This also given the slight
+performance hit we had in the pipeline final assessment session described in the
+last chapter. We then started to make some research about how the Rust code
+could be integrated and if ultimately, this was even a good idea. It turned out
+that it was not, for this specific code. But let's see why. First, lets focus
+deeply on the eventual pros that switching to Rust could have brought.
 
-\subsection[Eventual pros]{Eventual pros}
-As said before, Rust is way more performant than Python is. Naturally, for the majority
+\section[Eventual pros]{Eventual pros}
+As said before, Rust is way more performing than Python is. Naturally, for the majority
 of the tasks, it runs on three orders of magnitude faster than Python. This due to
 his lower-level nature. Rust is also a safer language, with numerous features that
 prevent the developer from making mistakes. The borrow checker can be a pain
@@ -510,7 +593,7 @@ more maintainable and extensible. This could be made by defining base traits (th
 Rust interfaces, but more powerful) to, in the future, being able to insert new
 parser if needed.
 
-\subsection[Modularization]{Cons 1: Modularization}
+\section[Modularization]{Cons 1: Modularization}
 It would have been a huge win if all the heavy lifting could be made by the Rust
 code instead of the actual Python one. Looking at the codebase, it was clear
 that that was not possible. This is because the codebase does not allow for modular
@@ -520,25 +603,25 @@ at each step, so that code was not easily movable to Rust. In the end, it made
 no sense to modularize the entire pipeline in one unique Rust codebase, since it
 was called at each step of the pipeline in an independent way. This meant that, in
 order to switch, we had to create numerous different Rust microservices, and call
-each one of them via bindings, and then also re-elaboreate the output, to be compatible
+each one of them via bindings, and then also re-elaborate the output, to be compatible
 with the Python code. This would have been a huge amount of work, and it would have
-been a source of bugs and technological debt. This, will turn out in one of following
-subsections, was the ultimate reson also for not having any substantial
+been a source of bugs and technological debt. This, turns out in one of following
+sections, was the ultimate reason also for not having any substantial
 performance gain.
 
 An alternative could have been switching and rewriting the whole codebase in
 Rust. This could have been even more painful, due to the lack of some libraries,
-as we will see in next subsection.
+as we see in next section.
 
-\subsection[Libraries support]{Cons 2: Libraries support}
+\section[Libraries support]{Cons 2: Libraries support}
 As the time of writing, there is no robust and stable library for parsing
-written in Rust. This meant that I needed to write a parser library from scratch.
+written in Rust. This meant that we needed to write a parser library from scratch.
 This has been done, via a small proof of concept. The library is called `Pilator',
 and its only capability, at the moment, is allowing users to define their own Regex-like
 language, and parse the strings with it. It is effectively a PEG as `pyparsing',
 but way less powerful. It is done with a simple backtracking algorithm, and it
 is not fully optimized. It was just to see if there was any potential in this path.
-The library is available on GitHub (\cite{pilator}). Wrinting this library has highlighted
+The library is available on GitHub (\cite{pilator}). Writing this library has highlighted
 the fact that writing this is a whole project in itself, with a too much
 complexity, bugs, edge cases and optimizations to be made. This was only a source
 of technological debt for the codebase. If a bug was to be discovered and year
@@ -549,112 +632,98 @@ A lot of other libraries that are used in the codebase do not have a counter
 part in the Rust ecosystem, so this would mean even more writing from scratch,
 that would take too much precious time, not worth the effort.
 
-\subsection[Real performance]{Cons 3: Real performance}
+\section[Real performance]{Cons 3: Real performance}
 The second problem with this implementation is that the main code is still written
 in Python, therefore we needed to modularize each component of the pipeline in
 itself. We could not switch it entirely and then call directly the Rust code, as
 previously described. This brings the bottleneck of the bindings needed to communicate
-between the Python and the Rust code. To check if, performace-wise, this could
-make sense anyway, I set up an ad-hoc test suite. By writing with bindings, simply
+between the Python and the Rust code. To check if, performance-wise, this could
+make sense anyway, we set up an ad-hoc test suite. By writing with bindings, simply
 a function sums two numbers in Rust, using the `Maturing' `Py03' Library, the most
 known and developed library for this purpose. To do just so, it takes around 10 seconds
 for each compile, and 11 nanoseconds to sum two numbers. Python to do a simple sum
-takes around 30 nanoseconds. I also decided to test the performance of the
-existing Python code for parsing. It turns out that it takes and average of 3 milliseconds
-to parse a single line of BIR language. This means that, in a contract where it will
-be rare that there will be more than 10 lines of BIR code, the parser does not
-really represent a bottleneck, given the fact that we are using Rosette to generate
-new code, and continuously calling the solver. According to this number, and the
-fact that the library we would be using would not be as optimized as the Python
-one (`pyparsing`), the performance gain would be minimal, if not negative. And all
-would cost huge amount of time for developing and debugging a new solution from scratch.
+takes around 30 nanoseconds. we also decided to test the performance of the
+existing Python code for parsing, and compare with also the Rust one. It turns
+out that Python takes and average of 3 milliseconds to parse a single line of
+BIR language. Pure Rust takes an average of 0.002 milliseconds, while Rust with
+bindings takes on average 0.07.
 
-Effectively, just amortizing the time that it took to to write the testing for
-this would take the evaluations of milions of lines of BIR code.
+Given these data, it could seem that using bindings could be a huge performance gain
+over the pure Python implementation, but there are some caveats. First, we need
+to note that this is just for the parsing part of the pipeline, and the other parts
+could have different performance. Also, the parsing part is not the bottleneck of
+the pipeline, given the really short time that also the Python code takes. Note that
+the average length of a BIR string is around 45 characters, so the parsing time
+is really short. We need to also keep into consideration that these performance gain,
+that is not even noticeable, since parsing is not the most intensive part of the
+pipeline, comes at the cost of a more complex codebase, with the need to maintain
+a new source code and language, that is less mature than the solution already in
+place with Python and `pyparsing'. The most intensive step of the pipeline is the
+generation of the constraints, that is done with Rosette, so does not entail switching
+from Python to Rust. This was another part of the stack that was not really
+negotiable, since the expertise was already in place in the researchers group and
+the powerful tooling that Rosette offers was not available in Rust.
 
-All the benchmark code can be found on GitHub (\cite{benchmark}).
+In the end, for a negligible and not even noticeable performance gain at
+inference time, we have a huge cost at development time, more complex and
+distributed code, and technical debt that could be a source of bugs and issues in
+the future. Given that, also performance-wise, the gains this switch could bring
+are not worth the effort. All the benchmark code can be found on GitHub (\cite{benchmark}).
 
-\subsection[Real extensibility]{Cons 4: Real extensibility}
-Another point that I made about switching to Rust was the eventual extensibility
-of the produced code, allowing for future new parser and eventual other components.
-If we created a `parser` trait, then any eventual additional representation language
-could have been the same trait, and therefore, once tested there was no need in the
-actual code to handle the new addition. This is a really useful feature, if you ever
-use it.
+\section[Real extensibility]{Cons 4: Real extensibility}
+Another point that we made about switching to Rust was the eventual extensibility
+of the produced code, allowing for future new parser and eventual other
+components. If we created a `parser` trait, then any eventual additional
+representation language could have been the same trait, and therefore, once
+tested there was no need in the actual code to handle the new addition. This is a
+really useful feature, if you ever use it.
 
-As we thought, the scope of this thesis was creating a new pipeline to handle
-the BIR language, that was more robust and researched for representing a ISA of a
-real CPU. How many other times there will be the need to implement a new
-language for the ISA? Probably never, since we choose BIR for his empirical
-superiority. There are not even much other candidate to do so, and BIR seems to
-be, as today, the best. Therefore, the extensibility of the codebase was not a
-real concern, and it was not worth the effort to switch to Rust for this reason.
+As we thought, the scope of this thesis was creating a new pipeline to handle the
+BIR language, that was more robust and researched for representing a ISA of a
+real CPU. How many other times there is the need to implement a new language for
+the ISA? Probably never, since we choose BIR for his empirical superiority.
+There are not even much other candidate to do so, and BIR seems to be, as today,
+the best. Therefore, the extensibility of the code was not a real concern, and
+it was not worth the effort to switch to Rust for this reason.
 
-\subsection[Development speed]{Cons 5: Development speed}
+\section[Development speed]{Cons 5: Development speed}
 Another fact is that, compared to Python, Rust is way slower to develop. This is
-because of the borrow checker, that is a really powerful tool, but it can be a
-pain to work with. In this case, development performance is more important, since
-this is a research project. Also the learning curve of the language is way
-steeper than Python, and the community is way smaller. So, beigng able to do things
-and destroy afterwards, without spending astonishing amount of times was a huge
-win, and for this Python was just the best. Plus, on the team there was no high expertise
-in Rust. This would have meant technical debt to be paid in the future, and hufe
-amout of time spent on learning the language. Given the type of project in
-itself, this was not worth the effort.
+because of the borrow checker, that is a really powerful tool, but it can be a pain
+to work with. In this case, development performance is more important, since
+this is a research project. Also the learning curve of the language is way steeper
+than Python, and the community is way smaller. So, being able to do things and
+destroy afterwards, without spending astonishing amount of times was a huge win,
+and for this Python was just the best. Plus, on the team there was no high
+expertise in Rust. This would have meant technical debt to be paid in the future,
+and huge amount of time spent on learning the language. Given the type of project
+in itself, this was not worth the effort.
 
-\subsection[Safety]{Cons 6: Safety}
-One last point is on safety. This could be a deal-breaker for some cases, where the
-codebase is really critical. But in this case, the codebase is not critical, and
-it is used to synthesise contracts from the CPU, from a local computer. This
-means no huge throughput, not real race conditions, and probably not real issues
-at all with memory management.
+\section[Safety]{Cons 6: Safety}
+One last point is on safety. This could be a deal-breaker for some cases, where
+the code is really critical. But in this case, the code is not critical, and it is
+used to synthesize contracts from the CPU, from a local computer. This means no huge
+throughput, not real race conditions, and probably not real issues at all with memory
+management.
 
-We are not dealing with data of person or any sensible information, so the safety
-for this project was not a real concern.
+We are not dealing with data of person or any sensible information, so the
+safety for this project was not a real concern.
 
-Ultimately, the safety that Rust would have naturally given to the codebase, was
-not something that was stricly required, nor even much useful.
+Ultimately, the safety that Rust would have naturally given to the code, was not
+something that was strictly required, nor even much useful.
 
-\subsection[Conclusion]{Conclusion}
-After all the research that I have done, that has been described in precedent subsection,
-it was clear that switching to Rust was not worth the effort.
+\section[Conclusion]{Conclusion}
+After all the research that we have done, that has been described in precedent
+section, it was clear that switching to Rust was not worth the effort.
 
-In the end, I focused my attention in writing the best Python code, and
-leveraging the advantages that the language offers. Despite the frankly unexpected
-outcode, the research made to understand that Rust was not a great fit let to a
-lot of learning both in term of how both the languages works, their pros and cons,
-and how to evaluate which one is the best for a specific project. Also, in order
-to write the PoC of the parser and the benchmarks, I had the chance both to write
-Rust code, and learn more about it, and also to see how it is to actually write a
-really complicated piece of software as a parser from scratch, and this was a
-really valuable experience.
+In the end, we focused my attention in writing the best Python code, and leveraging
+the advantages that the language offers. Despite the frankly unexpected outcome,
+the research made to understand that Rust was not a great fit let to a lot of learning
+both in term of how both the languages works, their pros and cons, and how to evaluate
+which one is the best for a specific project. Also, in order to write the PoC of
+the parser and the benchmarks, we had the chance both to write Rust code, and learn
+more about it, and also to see how it is to actually write a really complicated
+piece of software as a parser from scratch, and this was a really valuable experience.
 
-This also showed me how it actually works the world of reseach, where the majority
-of the time is spent in thinking how to do and if it makes sense to do so, in
-spite of the actual implementation.
-
-\section{Future work}
-\label{cha:Future work} This project, overall, has a huge potential for
-different use cases an research paths. The first thing that seems to have the higher
-potential is to, once the contract of the CPU has been synthesised, we know all the
-potential vulnerabilites that could be exploited. Using this pointer, a good use
-of this information would be to create some compiler-level checks or modification
-to the target code so that the code becomes actually secure. This possible
-evolution has huge potential, since this could almost eliminate the risks that speculation
-brings, and only leaving the improvements that it has to offer. This could be a huge
-step forward in the world of security, and could also interest a lot of vendors.
-
-An eventual alternative could be to patch the code afterwards, even though this seems
-to be a less appealing goal, since this would add another step in the
-compilation process, making it slower. And for large codebase this would be a
-bottleneck, while directly writing the compiled code with the possible security flaw
-in mind could yield better results in term of compilation performance.
-
-Eventually, the knowledge of the contract of the CPU could be an information
-that could help in the discover of new vector of attack, some other alterenative
-to Specter as Revizor's team discovered. Also this could let room for
-improvement in the security of the speculation practise, allowing for secure increase
-in performance.
-
-Overall, every possible future work seems to have potential, and also remain in the
-domain of security and low level programs.
+This also showed me how it actually works the world of research, where the
+majority of the time is spent in thinking how to do and if it makes sense to do
+so, in spite of the actual implementation.
