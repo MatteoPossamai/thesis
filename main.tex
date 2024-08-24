@@ -20,6 +20,7 @@
 \usepackage[utf8]{inputenc}
 % Language
 \usepackage[english]{babel}
+
 % PDF/A
 \usepackage[a-1b]{pdfx}
 % Image
@@ -27,6 +28,7 @@
 \usepackage{wrapfig}
 \usepackage{stackengine}
 \usepackage{etoolbox}
+\usepackage{easylist}
 \BeforeBeginEnvironment{wrapfigure}{\setlength{\intextsep}{0pt}}
 % Hyperlink
 \usepackage{xurl}
@@ -41,6 +43,11 @@
 
 \usepackage{lineno}
 \linenumbers
+
+\usepackage{mathtools}
+\usepackage{hyperref}
+\usepackage[noabbrev]{cleveref}
+
 % Document
 \begin{document}
   % Cover
@@ -83,6 +90,6 @@
   % Bibliography
   \addcontentsline{toc}{chapter}{Bibliography}
   % Alphabetical order of authors
-  \bibliographystyle{plain}
+  \bibliographystyle{unsrt}
   \bibliography{bibliography.bib}
 \end{document}

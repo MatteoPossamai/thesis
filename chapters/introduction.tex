@@ -1,6 +1,7 @@
 \chapter{Introduction}
 \label{cha:introduction}
 
+\section{Abstract}
 Micro-architectural Leakage Contract Synthesis (Malcos) is a synthesis engine
 for generating contracts representing speculation behavior of black-box CPUs. It
 is currently under the development of a research team made with researchers from
@@ -9,8 +10,8 @@ that can synthesize speculation contracts of black box CPUs, providing more
 information about their behavior. This is done to then, in further steps, be able
 to inspect vulnerabilities of CPU, to then correctly and automatically patch
 them, in a platform-dependent way. The tool is written mainly in Python and
-Racket, using the Revizor (\cite{article},\cite{repo}, \cite{misc}) tool and the
-Rosette language\cite{ros}. As the time of this thesis, the project is not open-sourced,
+Racket, using the Revizor \cite{article}, \cite{repo}, \cite{misc} tool and the Rosette
+language \cite{ros}. As the time of this thesis, the project is not open-sourced,
 but the plan is to make it public once it is completed, tested and validated.
 
 At the beginning of the project, the team developed and used a Domain Specific
@@ -21,56 +22,74 @@ platform-independent way all possible CPU contracts and operations. A new
 semantic was therefore needed. Also, a group of researchers of KTH institute
 involved in the same topics and also collaborating with the team in other
 research projects, developed a new language, called Binary Intermediate
-Representation (BIR, \cite{bir_pub}), which they created with the goal of
-representing the Instruction Set Architecture (ISA) of the CPU in a platform-independent,
+Representation, BIR, \cite{bir_pub}, which they created with the goal of representing
+the Instruction Set Architecture (ISA) of the CPU in a platform-independent,
 powerful and complete way, to have an universal language for this purpose. These
 two factors lead to the decision of migrating the semantic that the project used
 for the contract from the DSL to BIR.
 
-To do so, all the current DSL pipeline needed to be replaced by a new one, suited
-for the BIR language. A full rebuild was needed since translating from BIR to
-the DSL to then inject it into the tool, and translating the output to BIR again
-was not a suitable option. This was because of the fact that BIR is far more
-complex then the DSL, and therefore not all the constructs were available. This
-meant making the DSL more powerful, or switch directly and entirely to BIR, as
-has we did.
+To do so, all the current DSL pipeline needed to be replaced by a new one,
+suited for the BIR language. A full rebuild was needed since translating from BIR
+to the DSL to then inject it into the tool, and translating the output to BIR
+again was not a suitable option. This was because of the fact that BIR is far more
+complex then the DSL, and therefore not all the constructs were available. This meant
+making the DSL more powerful, or switch directly and entirely to BIR, as has we did.
 
-Therefore, in this thesis we implement all the new pipeline and logic needed to handle
-the BIR language for this particular project, and we validate the correctness of
-the final outcome. To be more precise, in this thesis we implement the parser
-for the language, the tracer that interprets the contract and populates the trace
-and the engine for generating the new synthesized contracts.
+Therefore, in this thesis we implement all the new pipeline and logic needed to
+handle the BIR language for this particular project, and we validate the correctness
+of the final outcome. To be more precise, in this thesis we implement the parser
+for the language, the tracer that interprets the contract and populates the
+trace and the engine for generating the new synthesized contracts.
 
-Also, we thought about whether it would have been worth migrating the pipeline, or
-part of it from the native Python, to Rust, a more performing and safe programming
-language. In this thesis, we also explore the research, the proof of concepts (PoC)
-developed and the final outcome of this trial, that has been quite surprising giving
-the premise.
+Also, we thought about whether it would have been worth migrating the pipeline,
+or part of it from the native Python, to Rust, a more performing and safe
+programming language. In this thesis, we also explore the research, the proof of
+concepts (PoC) developed and the final outcome of this trial, that has been
+quite surprising giving the premise.
 
 We wrote and run multiple different tests to validate the correctness of the new
-pipeline. The majority of them are unit tests, to test each step of the process and
-ensure correct behavior at a local scale, and multiple tests involving all the
-moving part. To test the latter, we used already tested contracts, and compared the
-outcome with the DSL pipeline, to ensure correctness and consistency. In total,
-more than 200 tests are present in the code contribution of this thesis.
+pipeline. The majority of them are unit tests, to test each step of the process
+and ensure correct behavior at a local scale, and multiple tests involving all the
+moving part. To test the latter, we used already tested contracts, and compared
+the outcome with the DSL pipeline, to ensure correctness and consistency. In
+total, more than 200 tests are present in the code contribution of this thesis.
 
-At this point, also, the Malcos project is still under development, but now is using
-the BIR language to represent the contract instead of the legacy DSL. This
+At this point, also, the Malcos project is still under development, but now is
+using the BIR language to represent the contract instead of the legacy DSL. This
 further validates the work done.
 
-\textbf{Outline}: This thesis is the overview of the contribution done to the
-Malcos code, exploring all the steps taken, the choice made with their
-motivations, and proofs the validity of the developed solutions.
+Concretely, this thesis makes the following contributions:
+\begin{itemize}
+  \item It discusses the devlopment of the parser for BIR and its validation
 
-To do so, Section \ref{cha:background} makes a background overview of all the
-needed concepts to understand the work and the project we are talking about, and
-all the tools used in this thesis. Section \ref{cha:core} presents the core of
-the thesis, with all the steps taken to transition from the DSL to BIR, the
-validation of each step and the assessment of the final results. Follows the additional
-chapter \ref{cha:Migration to Rust} where there are all the explanation of the research
-done to decide whether it was worth migrating the pipeline from the native Python
-code to a Rust implementation. Follows section \ref{cha:related_works}, where we
-talk about all the related works present in the academic literature at the moment,
-how we took inspiration and how we compared our work with them. Section \ref{cha:conclusion}
-presents the conclusion of the thesis, with some brief thoughts about the work
-done and the future development of the project.
+  \item It discusses the development of the tracer for the BIR comprehension and
+    its validation
+
+  \item It defines the syntax for the Rosette contract synthesizer for generating
+    new contracts with BIR's syntax
+
+  \item It shows the correctness of the whole built pipeline with multiple tests
+
+  \item It explores the possibility of migrating the pipeline to Rust, and the
+    outcome of this trial
+\end{itemize}
+
+\section{Outline}
+This thesis is the overview of the contribution done to the Malcos code, exploring
+all the steps taken, the choice made with their motivations, and proofs the validity
+of the developed solutions.
+
+To do so, \cref{cha:background} makes a background overview of all the needed
+concepts to understand the work and the project we are talking about, and all the
+tools used in this thesis. \Cref{cha:core} presents the core of the thesis, with
+all the steps taken to transition from the DSL to BIR and the validation of each
+step. \Cref{cha:Validating the pipeline} makes a more holistic validation and
+discussion of the results of the whole thesis, with the global validations and further
+discussions. Following, the additional \cref{cha:Migration to Rust} where there are
+all the explanation of the research done to decide whether it was worth migrating
+the pipeline from the native Python code to a Rust implementation. Following
+section \cref{cha:related_work}, where we talk about all the related works present
+in the academic literature at the moment, how we took inspiration and how we
+compared our work with them. \Cref{cha:conclusion} presents the conclusion of the
+thesis, with some brief thoughts about the work done and the future development
+of the project.

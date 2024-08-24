@@ -1,30 +1,29 @@
-\chapter{Core}
+\chapter{Implementation}
 \label{cha:core} In this chapter, there is the discussion of the contribution
 made in this thesis in the project code, with the goal of switching the language
 pipeline from the DSL to BIR.
 
-We start from the first step of the pipeline in \ref{cha:Parsing BIR}, where
+We start from the first step of the pipeline in \cref{cha:Parsing BIR}, where
 there is the discussion of the implementation of the parser for the BIR language,
 how it has been done, the instruments and the outcome. We then check the correctness
-of the produced parser in the following section \ref{cha:Validating the parsing},
-where there is the in depth explanation of all the developed tests and
-methodologies to validate the parser validity and robustness. In the next section
-\ref{cha:Tracing the parsed BIR}, there is the development of the next step in
-the pipeline, the tracer, the component that populates the values seen in the
-CPU, and is used to then populate the contract. To do so, it needs to interpret the
-parsed BIR language and take trace of the computed values. All the tests and
-validation for this component are then discussed in the section
-\ref{cha:Validating the tracing}. Here there is be a really in-depth discussion of
-all the test's types and the motivations that brought us to write them. In the
-section \ref{cha:Generating the Rosette code}, there is the discussion of the development
+of the produced parser in the following \cref{cha:Validating the parsing}, where
+there is the in depth explanation of all the developed tests and methodologies
+to validate the parser validity and robustness. In next \cref{cha:Tracing the
+parsed BIR}, there is the development of the next step in the pipeline, the tracer,
+the component that populates the values seen in the CPU, and is used to then populate
+the contract. To do so, it needs to interpret the parsed BIR language and take trace
+of the computed values. All the tests and validation for this component are then
+discussed in \cref{cha:Validating the tracing}. Here there is be a really in-depth
+discussion of all the test's types and the motivations that brought us to write them.
+In \cref{cha:Generating the Rosette code}, there is the discussion of the development
 of the grammar in the Rosette language, allowing therefore the generation of new
-constraints for the contract, closing the loop of the project. In the section
-\ref{cha:Validating the pipeline}, there is the discussion of the validation of the
-whole developed pipelines, with some example of the tests. In the following section
-\ref{cha:Code migration and documentation}, there is a brief discussion of the
-migration of the code from the DSL to BIR, the merge operation and the documentation
-created for the developers of the project, to allow them to understand the new
-pipeline and contribution.
+constraints for the contract, closing the loop of the project. In
+\cref{cha:Validating the pipeline}, there is the discussion of the validation of
+the whole developed pipelines, with some example of the tests. In following \cref{cha:Code
+migration and documentation}, there is a brief discussion of the migration of
+the code from the DSL to BIR, the merge operation and the documentation created for
+the developers of the project, to allow them to understand the new pipeline and
+contribution.
 
 \section{Parsing BIR}
 \label{cha:Parsing BIR} The first step in the pipeline is parsing the BIR
@@ -39,9 +38,9 @@ specific focus on the BIR language. Some of these person were the researchers
 that actually developed BIR in the first place, so it was the perfect environment
 for this research. With them, we understood the grammar, the main features and
 constructs of the language, and we began to be familiar with the semantic. We
-wrote some examples of the code in the section \ref{cha:BIR}. We decided so,
-that we needed all the basics expressions of the language, so the if then else,
-the binary operations, the memory operations, the unary operations, the predicates,
+wrote some examples of the code in the \cref{cha:BIR}. We decided so, that we
+needed all the basics expressions of the language, so the if then else, the
+binary operations, the memory operations, the unary operations, the predicates,
 constant values and variables. After some time, we also decided to add the
 OPERAND operators, since they became needed for the project as a whole.
 
@@ -58,7 +57,7 @@ option for creating object that appears `OneOrMore' times, or `ZeroOrMore' times
 and so on. This allows the developer to focus more on the regex of the language itself,
 without the need to focus on complex details about the implementation of the
 parsing. Creating a new parser completely from scratch would have been a story of
-its own, as we also see in the chapter \ref{cha:Migration to Rust}.
+its own, as we also see in the \cref{cha:Migration to Rust}.
 
 Then, to develop this parser, we dived deep into the language and created all
 the regular expressions needed to represent the full specification of the
@@ -75,7 +74,7 @@ fledged parser functionalities.
 Once the grammar was fully created, we created the class structure that `pyparsing'
 needs to put all the parsed string, so we can after the parsing also trace and
 evaluate the expression. This class can be seen as a parsing tree, from a high
-level. I created this class, that according to the generated keyword, it would have
+level. We created this class, that according to the generated keyword, it would have
 some specific attributes that is used in future steps of the pipeline. It
 behaves as a generic type, or a sort of enum, according to the specific
 construct it is modeling. This approach was not quite optimal, you cannot infer
@@ -85,7 +84,7 @@ understand what type of expression was used and allow for more readable code. Ot
 languages different from Python, such as Rust, can do this with generics or enums,
 that are features not offered by Python. This is one of the reasons that made us
 thinking about switching the language of this thesis's project to Rust, as we
-see in the section \ref{cha:Migration to Rust}.
+see in the \cref{cha:Migration to Rust}.
 
 We called this class `BEXP', as Binary Expression. This class is istantiated
 when the parser finds a binary expression, and it is used to the eventual operands,
@@ -125,11 +124,11 @@ and checking their correctness. Another type of test that we implemented was the
 creation of invalid BIR string, and we expected a failure from the parser. If
 that would not happen, then there was some issue in the current implementation.
 
-For all the testing, also in section \ref{cha:Validating the tracing}, we used the
-Python library `unittest'. This library allows to create a `TestCase' class
-instance, in which developers can define their test cases. The class allows for
-a `setUp' method that is executed before the whole test case suite is. Then, all
-the methods that has a function name starting with `test' are executed. In the function,
+For all the testing, also in \cref{cha:Validating the tracing}, we used the Python
+library `unittest'. This library allows to create a `TestCase' class instance, in
+which developers can define their test cases. The class allows for a `setUp'
+method that is executed before the whole test case suite is. Then, all the
+methods that has a function name starting with `test' are executed. In the function,
 we inserted many `assert' statements, to check that the outcome of the executed function
 was what we expected. If the test runs as expected and all the assertions are
 met, the the test is counted as passed, otherwise it fails. In the end of the simulation,
@@ -150,7 +149,7 @@ last part of the implementation has been done alongside the testing, since this 
 the speed and productivity of code writing and effective artifacts produced.
 This allows in the future, to do some addition to the parser, and test
 automatically in a matter of milliseconds if the implemented change did not
-break anything. This gave me also a chance to approach Test-Driven Development (TDD),
+break anything. This gave us also a chance to approach Test-Driven Development (TDD),
 that is a developing methodology quite popular, and understand the benefits it provides.
 
 \section{Tracing the parsed BIR}
@@ -167,7 +166,7 @@ value contained in the RAX register.
 The step of tracing is really important, because this allow us to check what information
 are leaked by the contract. Then, we are able to infer the knowledge, and add
 more constraint to the CPU contract, and then check loop over again, up to we
-reach a fixed point, as detailed in the section \ref{cha: Loop outlook}.
+reach a fixed point, as detailed in \cref{cha: Loop outlook}.
 
 To accomplish this goal of tracing the contracts, populating the trace and
 allowing the project to run his loop, we needed to create a new class for this purpose.
@@ -187,13 +186,13 @@ tracer, to see how it was actually implemented, what were the main features and 
 needed, and eventually how to perform some low-level operations with numbers and
 registers. Unfortunately, the legacy tracer was not fully implemented, and a lot
 of methods and features were not implemented (they simply throw a `NotImplementedError').
-So, for the majority of the code we wrote, we did my own research and done a lot
-of trial and error. But this also gave me the freedom to choose the approach I preferred
-the most, so we was able to structure the code in the way we felt was the best, and
-eventually change my mind and re-factor it. In particular, I modularized a lot more
-all the needed functions for low level operations, and made the functions more
-robust. This was due to the advantages that modularizing brought me in the Parser
-development, and in the Tracer as well.
+So, for the majority of the code we wrote, we did our own research and done a
+lot of trial and error. But this also gave us the freedom to choose the approach
+we pcreferred the most, so we were able to structure the code in the way we felt
+was the best, and eventually change our mind and re-factor it. In particular, we
+modularized a lot more all the needed functions for low level operations, and
+made the functions more robust. This was due to the advantages that modularizing
+brought us in the Parser development, and in the Tracer as well.
 
 The `BIRParametricTracer' works as follows:
 \begin{itemize}
@@ -231,20 +230,20 @@ to write some of the code from scratch. This took some time, but was worth it, s
 now the code does not rely on external libraries.
 
 In the end, the `BIRParametricTracer' implemented the following methods: \begin{verbatim}
-    eval_expr() -> Evaluate the expression and trace eventually
-    eval_pred() -> Evaluate the predicate
-    eval_unary_operations() -> Evaluate the unary operations 
-    eval_binary_operations() -> Evaluate the binary operations
-    eval_ifthenelse() -> Evaluate the if then else
-    eval_cast() -> Evaluate the cast
-    eval_den() -> Evaluate the variable in a register
-    eval_load() -> Evaluate the load from memory
-    eval_store() -> Evaluate the store in memory
-    eval_obs() -> Evaluate the operand
+    eval\_expr() -> Evaluate the expression and trace eventually
+    eval\_pred() -> Evaluate the predicate
+    eval\_unary_operations() -> Evaluate the unary operations 
+    eval\_binary_operations() -> Evaluate the binary operations
+    eval\_ifthenelse() -> Evaluate the if then else
+    eval\_cast() -> Evaluate the cast
+    eval\_den() -> Evaluate the variable in a register
+    eval\_load() -> Evaluate the load from memory
+    eval\_store() -> Evaluate the store in memory
+    eval\_obs() -> Evaluate the operand
     signedToUnsigned() -> Convert a signed number to an unsigned one
     unsignedToSigned() -> Convert an unsigned number to a signed one
     cast() -> Cast a number to a different precision
-    translate_value() -> Given a value and a not-matching precision, translate it
+    translate\_value() -> Given a value and a not-matching precision, translate it
 \end{verbatim}
 
 So, the final artifact of this step was adding the `BIRParametricTracer' to the file
@@ -255,8 +254,8 @@ researchers, to be sure that the behavior of the tracer was the expected one.
 This means that some modules of the tracer was written several times, yielding in
 the end a version that can fully and correctly trace the BIR contracts.
 
-In the next section, we cover how we were able to validate the tracing
-correctness, and therefore move to the next step of the pipeline.
+In next section, we cover how we were able to validate the tracing correctness, and
+therefore move to the next step of the pipeline.
 
 \section{Validating the tracing}
 \label{cha:Validating the tracing} The tracing step of the pipeline is quite crucial,
@@ -265,7 +264,7 @@ to be quite robust and cover all the possibilities that could occur while using
 the tracer. To archive this, we wrote two different sets of tests, of two different
 kind. In this section we cover both of them. All of the tests, as in the case
 for the parser has been done using the Python package `unittest', and its class `TestCase',
-for code coherence, as in section \ref{cha:Validating the parsing}. \\
+for code coherence, as in \cref{cha:Validating the parsing}. \\
 
 The first family of tests was the one that checked that the output of the evaluation
 function was actually correct, and therefore the computation made by the custom
@@ -338,7 +337,7 @@ tests such as this ones that we just listed. So it was worth seeing if, with
 this bigger and complex suite of cases, the tracer would produce the same expected
 and desired outcome.
 
-After testing all this facets of the tracer, we was confident that the
+After testing all this facets of the tracer, we were confident that the
 implementation was correct, and that we could move on to the next step of the tool
 chain, namely the generation of new contracts using Rosette.
 
@@ -366,15 +365,15 @@ code:
         (OPERAND-VALUE (?? integer?))
         (OPERAND-TYPE (?? integer?))
         (OPERAND-ACCESS (?? integer?))
-        (BExp_Const (?? Bit64))
-        (BExp_Den (BVar (REG (reg))))
-        (BExp_Cast (bcast) (bexp) (bimmt))
-        (BExp_UnaryExp (buop) (bexp))
-        (BExp_BinExp (bop) (bexp) (bexp))
-        (BExp_BinPred (bpred) (bexp) (bexp))
-        (BExp_IfThenElse (bexp) (bexp) (bexp))
-        (BExp_Load (BExp_Den (BVar "MEM" reg)) (bexp) BEnd_LittleEndian Bit64)
-        (BExp_Store (bexp) (bexp) (bendi) (bexp))
+        (BExp\_Const (?? Bit64))
+        (BExp\_Den (BVar (REG (reg))))
+        (BExp\_Cast (bcast) (bexp) (bimmt))
+        (BExp\_UnaryExp (buop) (bexp))
+        (BExp\_BinExp (bop) (bexp) (bexp))
+        (BExp\_BinPred (bpred) (bexp) (bexp))
+        (BExp\_IfThenElse (bexp) (bexp) (bexp))
+        (BExp\_Load (BExp_Den (BVar "MEM" reg)) (bexp) BEnd_LittleEndian Bit64)
+        (BExp\_Store (bexp) (bexp) (bendi) (bexp))
         (OPCODE (?? integer?))
     )]
   )
@@ -385,8 +384,8 @@ with all the expected types and values. As you can see, it is a quite complex
 and verbose language. It is quite similar to list for all the parenthesis, and
 it is easy to guess this is a meta-language.
 
-So, we did a lot of trial and error, but we was able to make some progress, given
-the help that Tiziano Marinaro, a PhD involved in the project gave me. He was one
+So, we did a lot of trial and error, but we were able to make some progress, given
+the help that Tiziano Marinaro, a PhD involved in the project gave us. He was one
 of the developers with the most experience with the BIR language and Rosette itself.
 His help has been crucial to understand the language and the syntax, and to be able
 to write the grammar.
@@ -395,121 +394,6 @@ Once also this step was completed, and Rosette was able to generate back the
 constraint of the contract in BIR, it was finally time to test the fully fledged
 pipeline, as we see in the next section.
 
-\section{Validating the pipeline}
-\label{cha:Validating the pipeline} One of the most difficult task, also from a conceptual
-point of view, was how to validate the whole pipeline. This is because the huge number
-of variables that are involved makes the possible outcomes and cases to test really
-large and almost impossible to cover entirely in a test suite.
-
-Therefore, the approach that was previously used for the legacy pipeline was
-proposed. It consisted in running the tool using configuration files that specified
-that the language used was, in fact, BIR and not the DSL anymore, to trigger the
-if statement that we applied in \ref{cha:Parsing BIR} and
-\ref{cha:Tracing the parsed BIR}. We then created a set of candidate contracts,
-following the ones used by the researchers to test the legacy pipeline, and we run
-the tool on them to see the final output, and test whether is met the expected
-one.
-
-The output was not directly comparable, since one output would have been a set of
-BIR constraints, while the other would have been a set of DSL constraints. Therefore,
-the comparison was a way that could not be used. We then decided to have an expected
-final contract and compare the output of the pipeline with the expected one.
-This would have been the final validation that we needed to fully be sure that
-the pipeline was doing the right thing and the final outcome was correct.
-
-We implemented this test for a number of contracts from the one that the
-researchers gave me for testing the tracer, that were part of the so-called testing
-campaign of the project. Testing that meant to have the needed final validation
-of the pipeline and the work of this thesis.
-
-Here we propose some of the tests that we run, that are part of the testing campaign:
-\begin{itemize}
-  \item BExp\_IfThenElse (BExp\_Const (bv 1 Bit1)) (BExp\_Den (BVar REG 7)) (BE
-    xp\_Const (bv 11 Bit32))
-
-  \item BExp\_IfThenElse (BExp\_BinExp BIExp\_And (BExp\_BinPred BIExp\_Equal (O
-    PERAND-TYPE 0) (BExp\_Const (bv 1 Bit64))) (BExp\_BinPred BIExp\_Equal (OPERA
-    ND-VALUE 0) (BExp\_Const (bv 0 Bit64))) (BExp\_Den (BVar REG 7)) (BExp\_Con st
-    (bv \# Bit32))
-
-  \item BExp\_IfThenElse (BExp\_BinExp BIExp\_And (BExp\_BinPred BIExp\_Equal (OPCODE
-    0) (BExp\_Const (bv 227 Bit64))) (BExp\_BinPred BIExp\_Equal (OPERAND-VALUE
-    1) (BExp\_Const (bv 0 Bit64))) (BExp\_Den (BVar REG 7)) BExp\_Const (bv \# Bit32))
-
-  \item BExp\_IfThenElse (BExp\_BinExp BIExp\_And (BExp\_BinPred BIExp\_Equal (OPERAND-TYPE
-    1) (BExp\_Const (bv 2 Bit64))) (BExp\_BinPred BIExp\_Equal (OPERAND-ACCESS 1)
-    (BExp\_Const (bv 21 Bit64))) (OPERAND-VALUE 1) BExp\_Const (bv \# Bit32))
-\end{itemize}
-
-The first test is the simplest case. It evaluates always to true, and therefore traces
-the value of the register 7, the Program Counter. The second test is a little bit
-more complex. It checks if the current operand type is 1 and the operand value
-is 0. If this is true then it traces the Program Counter again, otherwise it does
-not trace anything. The third test checks if the current OPCODE is 227 and if
-the operand value is 0, and in that case it traces the Program Counter,
-otherwise it does not trace anything. The last provided example of test checks if
-the OPERAND type is 1 and the OPERAND access is 21, and if this is true, it traces
-the OPERAND value, otherwise it does not trace anything. is 2 and if the operand
-access is 21, and if this is true, it traces the operand value, otherwise it
-does not trace anything. The provided examples are quite representative of the type
-of atomic tests that we run to validate the pipeline.
-
-This list is not comprehensive of all the constraints used for the testing, but
-gives a good idea of all types, grammar and structure that we mostly used for this
-purpose.
-
-Other tests were more complex ones, usually with multiple constraints, such as combining
-the ones provided above, and adding more of them. The most used operations in the
-contracts were all the OPERAND related ones, since they are the most meaningful
-triggers for speculative execution in the mind of the researchers. This means that
-given the type of the operands and eventually their value or their access, the
-cpu could make different speculations, so this is why they are the most used in the
-test contracts.
-
-Once we pass these testing contracts, we start to run the pipeline.As described
-in the chapter \ref{cha: Loop outlook}, we start with a clear contract, and we
-have the passed ones as candidate contract. At this point, we start to run the
-pipeline, and we check the final trace. With the final trace we can then infer
-what constraint the CPU contract has, and we compare it with the expected one.
-We can then add all of these needed constraints to the current contract and loop
-through the pipeline again, up to the point where we reach the fixed point.
-
-To then validate the pipeline, having the contract, knowing what contract we expect
-in the end given the contract candidate exposed previously, we expect a given
-final outcome, the contract that we expect to be generated. We can therefore run
-the whole tool chain, involving the pipeline that we built in this thesis, and
-then check if the final contract is the one that we expected. If that is the case,
-then, the validation is passed and the pipeline is said to be correct.
-
-We run the test provided above, plus a number of other tests, that are mostly a combination
-of the provided ones, seeing the final outcome of the pipeline, and the provided
-result.
-
-In the end, the pipeline was validated by this test, but this tests also showed us
-that the switch from the DSL to BIR had a cost in terms of performance. This is
-because of the nature of the language. BIR is more complex and also tends to be recursive
-in its evaluation, to allow more freedom and powerful expression. This comes with
-a cost, that the Rosette constraints generation tends to be quite slower than it
-previously was. Also the tracing step seems to take longer with BIR, just due to
-its recursive nature, while the DSL was simpler and linear to evaluate.
-Regardless, you can see the difference also in the output of the contract. While
-in the DSL the output was always an IF statement, in BIR if the statement is always
-true the system gets rid of the IF statement, making the constraint of the
-contract shorter and more readable. This is a trade-off that was not foreseen,
-and curious to see.
-
-In the end, in more deterministic terms, the BIR pipeline takes around 3 times
-the time that the DSL pipeline takes, and this is a cost that needs to be paid for
-this more powerful pipeline and language. For the time being, the cost is acceptable,
-and there seems not be a problem in the foreseeable future, but this is something
-hard to assess at the moment.
-
-In the end, regardless of the performance matter, this test gave us the final confirmation
-that the pipeline was mature enough and ready to be merged into the main project,
-to then let the other researchers continue the development of the other features,
-finally using the desired BIR language. This transition and the brief
-documentation produced is discussed in the next section.
-
 \section{Code migration and documentation}
 \label{cha:Code migration and documentation} For all the time of development of
 this thesis, we worked on a separate branch of the project, to allow other
@@ -517,19 +401,19 @@ developer and researchers continue the work on other vital features. This was al
 a way to not break the existing code, and to allow for a more controlled and
 safe development.
 
-Once we completed the development of my artifacts, it was actually time to merge
+Once we completed the development of our artifacts, it was actually time to merge
 the code into the main branch, to allow the researchers to start developing the
 project with the BIR pipeline, to then be able to use the new features and the new
 language.
 
-The merge operation was quite smooth, since my contribution was quite isolated. I
-mostly created new greenfield files to be added, and touched just one specific
-file in the main code, that is the `model.py', where we added the tracer. In that
-specific file, we just added some new code, without touching the existing one,
-so there were no conflicts. The merge operation was done using `git', since the
-project used this tool for versioning, as it is standard almost everywhere. Done
-that, the contribution was then merged, the pipeline ready to be used and the
-language switch completed.
+The merge operation was quite smooth, since our contribution was quite isolated.
+We mostly created new greenfield files to be added, and touched just one
+specific file in the main code, that is the `model.py', where we added the
+tracer. In that specific file, we just added some new code, without touching the
+existing one, so there were no conflicts. The merge operation was done using `git',
+since the project used this tool for versioning, as it is standard almost everywhere.
+Done that, the contribution was then merged, the pipeline ready to be used and
+the language switch completed.
 
 Also, since not all the developers knew BIR right away, and some of them needed
 to be able to the understand its syntax and semantic, there was the need of a brief
@@ -547,7 +431,7 @@ trace anything, if a condition is false, but the BIR IF statement has both a
 true and a false check. Therefore, the false check should be a special empty
 constant, and not trace anything. To create this, the following syntax was used:
 \begin{verbatim}
-  (BExp_IfThenElse (BExp_Const (bv 0 Bit1)) (BExp_Const (bv 1 Bit64)) (BExp_Const (bv # Bit64)))
+  (BExp\_IfThenElse (BExp_Const (bv 0 Bit1)) (BExp_Const (bv 1 Bit64)) (BExp_Const (bv \# Bit64)))
 \end{verbatim}
 The `\#' operator is used to flag the fact that the constant is not traced, and therefore
 is empty.
@@ -560,10 +444,183 @@ using BIR, as it was the goal of this thesis, and also had the needed documentat
 This was more or less the conclusion of the work done in this thesis, and the final
 contribution to the project.
 
-While we was working on this project, we also tried to research a way to improve
-the performance and the robustness of the pipeline, and we thought about switching
-to Rust. This parallel research project is discussed in the next and last
-section of this chapter.
+While we were working on this project, we also tried to research a way to
+improve the performance and the robustness of the pipeline, and we thought about
+switching to Rust. This parallel research project is discussed in the next and
+last section of this chapter.
+
+\chapter{Validating the pipeline}
+\label{cha:Validating the pipeline} One of the most difficult task, also from a
+conceptual point of view, was how to validate the whole pipeline. This is
+because the huge number of variables that are involved makes the possible
+outcomes and cases to test really large and almost impossible to cover entirely
+in a test suite.
+
+Therefore, we proposed the same approach that the legacy pipeline was using. It
+consisted in running the tool using configuration files that specified that the
+language used was, in fact, BIR and not the DSL anymore, to trigger the if statement
+that we applied in \cref{cha:Parsing BIR} and \cref{cha:Tracing the parsed BIR}.
+We then created a set of candidate contracts, following the ones used by the researchers
+to test the legacy pipeline, and we run the tool on them to see the final output,
+and test whether is met the expected one.
+
+Here is a snippet of a configuration file that we used:
+\begin{verbatim}
+\# test-always-pc-bir.yaml
+"contract\_observation_clause": "bir"
+"contract\_target":
+- "BExp\_IfThenElse (BExp_Const (bv 1 Bit1)) (BExp_Den (BVar (REG 7))) 
+                (BExp\_Const (bv 11 Bit32))"
+"executor": "contract\_executor"
+"input\_gen_entropy_bits": !!int "9"
+\end{verbatim}
+
+This configuration file specifies that the language used is BIR, and that the
+contract to be used is the one that traces the Program Counter, the register 7,
+if a condition is true, and the value 11 otherwise. The executor is the contract
+executor, that is the main class that runs the pipeline, and the input
+generation entropy bits is set to 9, that is the number of bits that are used to
+generate random values in the contract, to allow for more complex and random
+contracts.
+
+The output was not directly comparable, since one output would have been a set of
+BIR constraints, while the other would have been a set of DSL constraints. Therefore,
+the comparison was a way that could not be used. We then decided to have an expected
+final contract and compare the output of the pipeline with the expected one.
+This would have been the final validation that we needed to fully be sure that
+the pipeline was doing the right thing and the final outcome was correct.
+
+We implemented this test for a number of contracts from the one that the
+researchers gave us for testing the tracer, that were part of the so-called testing
+campaign of the project. Testing that meant to have the needed final validation
+of the pipeline and the work of this thesis.
+
+Here we propose some of the tests that we run, that are part of the testing campaign:
+\begin{itemize}
+  \item BExp\_IfThenElse (BExp\_Const (bv 1 Bit1)) (BExp\_Den (BVar REG 7)) (BE
+    xp\_Const (bv 11 Bit32))
+\end{itemize}
+
+This first test is the simplest case. It evaluates always to true, and therefore
+traces the value of the register 7, the Program Counter.
+
+\begin{itemize}
+  \item BExp\_IfThenElse (BExp\_BinExp BIExp\_And (BExp\_BinPred BIExp\_Equal (O
+    PERAND-TYPE 0) (BExp\_Const (bv 1 Bit64))) (BExp\_BinPred BIExp\_Equal (OPERA
+    ND-VALUE 0) (BExp\_Const (bv 0 Bit64))) (BExp\_Den (BVar REG 7)) (BExp\_Con st
+    (bv \# Bit32))
+\end{itemize}
+
+The second test is a little bit more complex. It checks if the current operand
+type is 1 and the operand value is 0. If this is true then it traces the Program
+Counter again, otherwise it does not trace anything.
+
+\begin{itemize}
+  \item BExp\_IfThenElse (BExp\_BinExp BIExp\_And (BExp\_BinPred BIExp\_Equal (O
+    PERAND-TYPE 0) (BExp\_Const (bv 1 Bit64))) (BExp\_BinPred BIExp\_Equal (OPERA
+    ND-VALUE 0) (BExp\_Const (bv 0 Bit64))) (BExp\_Den (BVar REG 7)) (BExp\_Con st
+    (bv \# Bit32))
+\end{itemize}
+The third test checks if the current OPCODE is 227 and if the operand value is 0,
+and in that case it traces the Program Counter, otherwise it does not trace anything.
+
+\begin{itemize}
+  \item BExp\_IfThenElse (BExp\_BinExp BIExp\_And (BExp\_BinPred BIExp\_Equal (OPERAND-TYPE
+    1) (BExp\_Const (bv 2 Bit64))) (BExp\_BinPred BIExp\_Equal (OPERAND-ACCESS 1)
+    (BExp\_Const (bv 21 Bit64))) (OPERAND-VALUE 1) BExp\_Const (bv \# Bit32))
+\end{itemize}
+
+The last provided example of test checks if the OPERAND type is 1 and the
+OPERAND access is 21, and if this is true, it traces the OPERAND value, otherwise
+it does not trace anything. is 2 and if the operand access is 21, and if this is
+true, it traces the operand value, otherwise it does not trace anything. The
+provided examples are quite representative of the type of atomic tests that we
+run to validate the pipeline.
+
+This list is not comprehensive of all the constraints used for the testing, but gives
+a good idea of all types, grammar and structure that we mostly used for this
+purpose.
+
+Other tests were more complex ones, usually with multiple constraints, such as
+combining the ones provided above, and adding more of them. The most used
+operations in the contracts were all the OPERAND related ones, since they are the
+most meaningful triggers for speculative execution in the mind of the researchers.
+This means that given the type of the operands and eventually their value or
+their access, the cpu could make different speculations, so this is why they are
+the most used in the test contracts.
+
+Once we pass these testing contracts, we start to run the pipeline. As described
+in the \cref{cha: Loop outlook}, we start with a clear contract, and we have the
+passed ones as candidate contract. At this point, we start to run the pipeline, and
+we check the final trace. With the final trace we can then infer what constraint
+the CPU contract has, and we compare it with the expected one. We can then add
+all of these needed constraints to the current contract and loop through the
+pipeline again, up to the point where we reach the fixed point.
+
+To then validate the pipeline, having the contract, knowing what contract we expect
+once the simulation completed given the contract candidate exposed previously,
+we expect a given final outcome, the contract that we expect to be generated. We
+can therefore run the whole tool chain, involving the pipeline that we built in this
+thesis, and then check if the final contract is the one that we expected. If that
+is the case, then, the validation is passed and the pipeline is said to be correct.
+
+We run the test provided above, plus a number of other tests, that are mostly a combination
+of the provided ones, seeing the final outcome of the pipeline, and the provided
+result.
+
+An example of the output that the code produces for the first test is the following:
+\begin{verbatim}
+================================ Statistics ===================================
+Test Cases: 2
+Inputs per test case: 20.0
+Required priming: 0
+Flaky violations: 0
+Violations: 0
+Effectiveness: 
+  Effectiveness: 0.0
+  Total Cls: 13.3
+  Effective Cls: 0.0
+Filters:
+  Speculation Filter: 0
+  Observation Filter: 0
+
+[-] No result tuple from fuzzer.
+[+] Latest contract:
+
+Current contract: {
+        (BExp\_Den (BVar (REG 7)))
+}
+[+] Equivalence classes:
+[5740354900026072187]
+\end{verbatim}
+As you can see, the existing contract is the one that we expected, and we have a
+full statistic breakdown of the test run. The run takes 5.7 seconds with the base
+settings.
+
+After this process, the pipeline was validated by this test, but this tests also
+showed us that the switch from the DSL to BIR had a cost in terms of performance.
+This is because of the nature of the language. BIR is more complex and also tends
+to be recursive in its evaluation, to allow more freedom and powerful expression.
+This comes with a cost, that the Rosette constraints generation tends to be
+quite slower than it previously was. Also the tracing step seems to take longer with
+BIR, just due to its recursive nature, while the DSL was simpler and linear to evaluate.
+Regardless, you can see the difference also in the output of the contract. While
+in the DSL the output was always an IF statement, in BIR if the statement is always
+true the system gets rid of the IF statement, making the constraint of the
+contract shorter and more readable. This is a trade-off that was not foreseen,
+and curious to see.
+
+Doing the aftermath, in more deterministic terms, the BIR pipeline takes around
+3 times the time that the DSL pipeline takes, and this is a cost that needs to be
+paid for this more powerful pipeline and language. For the time being, the cost is
+acceptable, and there seems not be a problem in the foreseeable future, but this
+is something hard to assess at the moment.
+
+In the end, regardless of the performance matter, this test gave us the final confirmation
+that the pipeline was mature enough and ready to be merged into the main project,
+to then let the other researchers continue the development of the other features,
+finally using the desired BIR language. This transition and the brief
+documentation produced is discussed in the next section.
 
 \chapter{Migration to Rust}
 \label{cha:Migration to Rust} During and after all the development described in the
@@ -586,8 +643,8 @@ prevent the developer from making mistakes. The borrow checker can be a pain
 during development, but assures that the majority error never happen. The type
 system of Rust is also one if its selling points. With it, it is able to create
 more powerful structure that are a better implementation then they are in Python.
-As described in section \ref{cha:Parsing BIR}, the Parse tree class `BEXP' could
-have been better handled with the power of Rust `enums' or using `trait' (the interfaces
+As described in \cref{cha:Parsing BIR}, the Parse tree class `BEXP' could have
+been better handled with the power of Rust `enums' or using `trait' (the interfaces
 of Rust) and generics . Rust is also a language that has the potential to be
 more maintainable and extensible. This could be made by defining base traits (the
 Rust interfaces, but more powerful) to, in the future, being able to insert new
@@ -621,54 +678,55 @@ and its only capability, at the moment, is allowing users to define their own Re
 language, and parse the strings with it. It is effectively a PEG as `pyparsing',
 but way less powerful. It is done with a simple backtracking algorithm, and it
 is not fully optimized. It was just to see if there was any potential in this path.
-The library is available on GitHub (\cite{pilator}). Writing this library has highlighted
-the fact that writing this is a whole project in itself, with a too much
-complexity, bugs, edge cases and optimizations to be made. This was only a source
-of technological debt for the codebase. If a bug was to be discovered and year
-from the time of writing, there was anyone maintaining and fixing the library,
-and the whole project would be stuck.
+The library is available on GitHub, \cite{pilator}. Writing this library has
+highlighted the fact that writing this is a whole project in itself, with a too much
+complexity, bugs, edge cases and optimizations to be made. This was only a
+source of technological debt for the codebase. If a bug was to be discovered and
+year from the time of writing, there was anyone maintaining and fixing the
+library, and the whole project would be stuck.
 
-A lot of other libraries that are used in the codebase do not have a counter
-part in the Rust ecosystem, so this would mean even more writing from scratch,
-that would take too much precious time, not worth the effort.
+A lot of other libraries that are used in the codebase do not have a counter part
+in the Rust ecosystem, so this would mean even more writing from scratch, that would
+take too much precious time, not worth the effort.
 
 \section[Real performance]{Cons 3: Real performance}
-The second problem with this implementation is that the main code is still written
-in Python, therefore we needed to modularize each component of the pipeline in
-itself. We could not switch it entirely and then call directly the Rust code, as
-previously described. This brings the bottleneck of the bindings needed to communicate
-between the Python and the Rust code. To check if, performance-wise, this could
-make sense anyway, we set up an ad-hoc test suite. By writing with bindings, simply
-a function sums two numbers in Rust, using the `Maturing' `Py03' Library, the most
-known and developed library for this purpose. To do just so, it takes around 10 seconds
-for each compile, and 11 nanoseconds to sum two numbers. Python to do a simple sum
-takes around 30 nanoseconds. we also decided to test the performance of the
-existing Python code for parsing, and compare with also the Rust one. It turns
-out that Python takes and average of 3 milliseconds to parse a single line of
-BIR language. Pure Rust takes an average of 0.002 milliseconds, while Rust with
-bindings takes on average 0.07.
+The second problem with this implementation is that the main code is still
+written in Python, therefore we needed to modularize each component of the pipeline
+in itself. We could not switch it entirely and then call directly the Rust code,
+as previously described. This brings the bottleneck of the bindings needed to
+communicate between the Python and the Rust code. To check if, performance-wise,
+this could make sense anyway, we set up an ad-hoc test suite. By writing with bindings,
+simply a function sums two numbers in Rust, using the `Maturing' `Py03' Library,
+the most known and developed library for this purpose. To do just so, it takes
+around 10 seconds for each compile, and 11 nanoseconds to sum two numbers.
+Python to do a simple sum takes around 30 nanoseconds. we also decided to test the
+performance of the existing Python code for parsing, and compare with also the
+Rust one. It turns out that Python takes and average of 3 milliseconds to parse a
+single line of BIR language. Pure Rust takes an average of 0.002 milliseconds, while
+Rust with bindings takes on average 0.07.
 
-Given these data, it could seem that using bindings could be a huge performance gain
-over the pure Python implementation, but there are some caveats. First, we need
-to note that this is just for the parsing part of the pipeline, and the other parts
-could have different performance. Also, the parsing part is not the bottleneck of
-the pipeline, given the really short time that also the Python code takes. Note that
-the average length of a BIR string is around 45 characters, so the parsing time
-is really short. We need to also keep into consideration that these performance gain,
-that is not even noticeable, since parsing is not the most intensive part of the
-pipeline, comes at the cost of a more complex codebase, with the need to maintain
-a new source code and language, that is less mature than the solution already in
-place with Python and `pyparsing'. The most intensive step of the pipeline is the
-generation of the constraints, that is done with Rosette, so does not entail switching
-from Python to Rust. This was another part of the stack that was not really
-negotiable, since the expertise was already in place in the researchers group and
-the powerful tooling that Rosette offers was not available in Rust.
+Given these data, it could seem that using bindings could be a huge performance
+gain over the pure Python implementation, but there are some caveats. First, we need
+to note that this is just for the parsing part of the pipeline, and the other
+parts could have different performance. Also, the parsing part is not the
+bottleneck of the pipeline, given the really short time that also the Python code
+takes. Note that the average length of a BIR string is around 45 characters, so the
+parsing time is really short. We need to also keep into consideration that these
+performance gain, that is not even noticeable, since parsing is not the most
+intensive part of the pipeline, comes at the cost of a more complex codebase,
+with the need to maintain a new source code and language, that is less mature than
+the solution already in place with Python and `pyparsing'. The most intensive
+step of the pipeline is the generation of the constraints, that is done with Rosette,
+so does not entail switching from Python to Rust. This was another part of the stack
+that was not really negotiable, since the expertise was already in place in the
+researchers group and the powerful tooling that Rosette offers was not available
+in Rust.
 
-In the end, for a negligible and not even noticeable performance gain at
-inference time, we have a huge cost at development time, more complex and
-distributed code, and technical debt that could be a source of bugs and issues in
-the future. Given that, also performance-wise, the gains this switch could bring
-are not worth the effort. All the benchmark code can be found on GitHub (\cite{benchmark}).
+In the end, for a negligible and not even noticeable performance gain at inference
+time, we have a huge cost at development time, more complex and distributed code,
+and technical debt that could be a source of bugs and issues in the future. Given
+that, also performance-wise, the gains this switch could bring are not worth the
+effort. All the benchmark code can be found on GitHub, \cite{benchmark}.
 
 \section[Real extensibility]{Cons 4: Real extensibility}
 Another point that we made about switching to Rust was the eventual extensibility
@@ -715,7 +773,7 @@ something that was strictly required, nor even much useful.
 After all the research that we have done, that has been described in precedent
 section, it was clear that switching to Rust was not worth the effort.
 
-In the end, we focused my attention in writing the best Python code, and leveraging
+In the end, we focused our attention in writing the best Python code, and leveraging
 the advantages that the language offers. Despite the frankly unexpected outcome,
 the research made to understand that Rust was not a great fit let to a lot of learning
 both in term of how both the languages works, their pros and cons, and how to evaluate
@@ -724,6 +782,6 @@ the parser and the benchmarks, we had the chance both to write Rust code, and le
 more about it, and also to see how it is to actually write a really complicated
 piece of software as a parser from scratch, and this was a really valuable experience.
 
-This also showed me how it actually works the world of research, where the
+This also showed us how it actually works the world of research, where the
 majority of the time is spent in thinking how to do and if it makes sense to do
 so, in spite of the actual implementation.
